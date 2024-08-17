@@ -13,5 +13,5 @@ The game was created with [Pyxel](https://github.com/kitao/pyxel)
 Some progress images from the jam.
 <figure>
 <img src="https://github.com/michalrajkowski/gmtk_game_jam_2024/blob/main/legacy_images/first_build.png" alt="first image">
-  <figcaption>About 2 hours into the jam</figcaption>
+  <figcaption><em>About 2 hours into the jam</em></figcaption>
 </figure>
