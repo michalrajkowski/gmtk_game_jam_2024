@@ -1,0 +1,29 @@
+- Map with tiles
+- Resources
+- choose thing from top (randomly generated) + reroll button + cooldown how often can be chosen?
+- place things on the map and simulate them?
+- lose condition? - enemy attacks / events?
+
+Buildings:
+- require resources to be bougth
+- require space to place them?
+- green - can be built
+- red - cant be built
+- building process (sprite is created pixel by pixel from ground)?
+
+Units:
+- sims
+- walk on the map and do tasks
+- the further they have to walk the least efficient the building is?
+
+
+TileMap:
+
+
+
+Layers:
+- map Layers
+- units layer?
+- particle layer
+- building/UI layer?
+- text layer?
