@@ -19,6 +19,12 @@ Units:
 
 TileMap:
 
+Building type:
+- gather stone?
+- gather wood?
+- gather food?
+- watchtower?
+-
 
 
 Layers:
