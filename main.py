@@ -64,6 +64,7 @@ class App:
         if pyxel.btnp(pyxel.MOUSE_BUTTON_RIGHT):
             self.placer_manager.reset()
 
+        self.building_manager.simulate()
         self.choice_manager.simulate()
         
 
@@ -127,7 +128,13 @@ class App:
 
         # load hover mouse sprite?
         (sprite_u, sprite_v) = self.placer_manager.get_placer_icon(tile_y, tile_x)
-        
+        if pyxel.btn(pyxel.KEY_CTRL):
+            if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
+                if (self.building_manager.try_to_move(tile_x, tile_y)):
+                    (sprite_u, sprite_v) = (80,16)
+                else:
+                    (sprite_u, sprite_v) = (96,16)
+
         pyxel.blt(tile_draw_x, tile_draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT, 0)
     
     def mouse_click_interaction(self):
@@ -158,6 +165,12 @@ class App:
                 return
             self.building_manager.build_building(self.placer_manager.placing_object, tile_x, tile_y)
             self.placer_manager.reset()
+        elif pyxel.btn(pyxel.KEY_CTRL):
+            # try to move unit
+            if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
+                # Try to move
+                if (self.building_manager.try_to_move(tile_x, tile_y)):
+                    self.building_manager.set_move_destination(tile_x,tile_y,self.placer_manager.selected_object)
         else:
             # we can select something
             self.placer_manager.reset()
