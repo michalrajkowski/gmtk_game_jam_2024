@@ -8,6 +8,7 @@ from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites
 from descriptions_manager import DescriptionsManager
 from buildings import Building
+from particles_manager import ParticleManager
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -50,6 +51,7 @@ class App:
                                             TILE_HEIGHT=TILE_HEIGHT)
         self.descriptions_manager = DescriptionsManager(placer_manager=self.placer_manager,
                                                         tile_manager=self.tile_manager)
+        self.particle_manager = ParticleManager()
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")
@@ -79,6 +81,7 @@ class App:
         self.choice_manager.draw_choice_pane()
         self.placer_manager.draw_selected()
         self.descriptions_manager.draw_selected_description()
+        self.particle_manager.render_particles()
         # pyxel.blt(61, 66, 0, 0, 0, 38, 16)
 
     def draw_tile_map(self):

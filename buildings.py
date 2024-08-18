@@ -1,5 +1,6 @@
-from resource_manager import ResourceManager,ResourcesIndex, resource_sprites, resources_from_tiles
+from resource_manager import ResourceManager,ResourcesIndex, resource_sprites, resources_from_tiles, resource_names
 from tile_manager import TileIndex, TileManager
+from particles_manager import ParticleManager
 import random
 # jakie cechy powinien mieć base building
 # - pozycja
@@ -10,6 +11,7 @@ class Building:
     def __init__(self, x=0, y=0):
         self.resource_manager: ResourceManager = None
         self.tile_manager: TileManager = None
+        self.particle_manager = ParticleManager()
         self.id = 0
         self.name = "MISSING NAME"
         self.x = x
@@ -62,6 +64,7 @@ class House(Building):
             if TileIndex.from_value(i) in [TileIndex.FOREST, TileIndex.MONTAIN, TileIndex.RIVER]:
                 # gather resource, return
                 self.resource_manager.increment_resource(resources_from_tiles[TileIndex.from_value(i)], 1)
+                self.particle_manager.add_particle(f"+1{resource_names[resources_from_tiles[TileIndex.from_value(i)]]}", (self.x, self.y))
                 return
 
 class Mine(Building):
@@ -78,6 +81,7 @@ class Mine(Building):
     def do_building_action(self):
         # Gather 1 Stone
         self.resource_manager.increment_resource(ResourcesIndex.STONE, 1)
+        self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.STONE]}", (self.x, self.y))
         
 
 class Fishermans(Building):
@@ -102,7 +106,7 @@ class Tower(Building):
 
         self.radius = 2
 
-        
+
 class MovingUnit(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)
