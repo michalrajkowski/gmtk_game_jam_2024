@@ -46,3 +46,5 @@ Units / sims:
 - simulated each frame
 - walking to their destination
 - carring back resources
+
+TODO: show increasement amount next to resources

@@ -1,7 +1,9 @@
 import pyxel
 import random
 from building_manager import BuildingManager
+from choice_manager import ChoiceManager
 from buildings import Building
+from resource_manager import ResourceManager, ResourcesIndex, resource_names, resource_sprites
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -17,7 +19,7 @@ RESOURCE_BASE_Y = 0
 CHOICE_PANE_BASE_X = 0
 CHOICE_PANE_BASE_Y = 192
 
-CHOICE_RESOURCE_SPRITES = ["stone", "wood", "food", "iron"]
+CHOICE_BAR_SIZE = 4
 
 class TileMap:
     def __init__(self):
@@ -31,15 +33,15 @@ class App:
 
         # generate all managers
         self.building_manager = BuildingManager()
+        self.resource_manager = ResourceManager()
+        self.choice_manager = ChoiceManager(resource_manager=self.resource_manager,
+                                            CHOICE_BAR_SIZE=CHOICE_BAR_SIZE, 
+                                            CHOICE_PANE_BASE_X=CHOICE_PANE_BASE_X, 
+                                            CHOICE_PANE_BASE_Y=CHOICE_PANE_BASE_Y, 
+                                            TILE_WIDTH=TILE_WIDTH,
+                                            TILE_HEIGHT=TILE_HEIGHT)
 
         self.generate_tile_map()
-        # resources:
-        self.resource_names = ["wood", "stone", "food", "iron"]
-        self.resource_amount = [0,0,0,0]
-
-        # choice_bar
-        self.choice_bar_choices_num = 4
-        self.choice_bar_choices = [0 for _ in range(self.choice_bar_choices_num)]
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")
@@ -52,6 +54,8 @@ class App:
             pyxel.quit()
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             self.mouse_click_interaction()
+
+        self.choice_manager.simulate()
         
 
     def draw(self):
@@ -61,7 +65,7 @@ class App:
         self.draw_buildings()
         self.mouse_hover_tile_select()
         self.draw_resources()
-        self.draw_choice_pane()
+        self.choice_manager.draw_choice_pane()
         # pyxel.blt(61, 66, 0, 0, 0, 38, 16)
 
     def generate_tile_map(self):
@@ -113,10 +117,12 @@ class App:
     def mouse_click_interaction(self):
         # get the tile
         if (pyxel.mouse_y >= CHOICE_PANE_BASE_Y and pyxel.mouse_y < CHOICE_PANE_BASE_Y+16 and 
-            pyxel.mouse_x >= CHOICE_PANE_BASE_X and pyxel.mouse_x < CHOICE_PANE_BASE_X+16*self.choice_bar_choices_num):
+            pyxel.mouse_x >= CHOICE_PANE_BASE_X and pyxel.mouse_x < CHOICE_PANE_BASE_X+16*CHOICE_BAR_SIZE):
             # We clicked the choice bar choice:
             clicked_index = int((pyxel.mouse_x - CHOICE_PANE_BASE_X)/16)
-            
+            self.choice_manager.handle_click(clicked_index=clicked_index)
+            return 
+        
             # handle this click:
             # - update resources based on clicked one
             # - generate new random click resources
@@ -136,37 +142,31 @@ class App:
 
         # basic interaction - random tile:
         self.tile_map[tile_y][tile_x] = (self.tile_map[tile_y][tile_x]+random.randint(1,3))%4
+    
     def draw_resources(self):
-        # draw each resource with its name and amount + sprite?s
-        for i in range(len(self.resource_names)):
-            resource_name = self.resource_names[i]
-            resource_draw_x = RESOURCES_BASE_X
-            resource_draw_y = RESOURCE_BASE_Y + 8*i
-            pyxel.text(resource_draw_x, resource_draw_y, resource_name, 7)
-
-            resource_amount = str(self.resource_amount[i])
-            resource_draw_x = RESOURCES_BASE_X + 30
-            resource_draw_y = RESOURCE_BASE_Y + 8*i
-            pyxel.text(resource_draw_x, resource_draw_y, resource_amount, 7)
-
-    def draw_choice_pane(self):
-        for i in range(self.choice_bar_choices_num):
-            choice_draw_x = CHOICE_PANE_BASE_X + TILE_WIDTH*i
-            choice_draw_y = CHOICE_PANE_BASE_Y
+        iteration_index = 0
+        for resource in ResourcesIndex:
+            # Get the resource name and amount from the ResourceManager
+            resource_name = resource_names[resource]
+            resource_amount = str(self.resource_manager.resource_amount[resource])
+            resource_max = str(self.resource_manager.max_amount[resource])
             
-
-            # draw choice frame:
-            tile_u = 0
-            tile_v = 3*TILE_WIDTH
-            pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, TILE_WIDTH, TILE_HEIGHT)
-
-            # draw correct choice resource
-            choice_resource_number = self.choice_bar_choices[i]
-            choice_resource_name = self.resource_names[choice_resource_number]
-            choice_resource_sprite_number = CHOICE_RESOURCE_SPRITES.index(choice_resource_name)
-            tile_u = choice_resource_sprite_number*TILE_WIDTH
-            tile_v = 2*TILE_HEIGHT
-            pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, TILE_WIDTH, TILE_HEIGHT,0)
+            # Calculate the position to draw the resource name and amount
+            resource_draw_x = RESOURCES_BASE_X + 1 + 18
+            resource_draw_y = RESOURCE_BASE_Y + 16 * iteration_index # Adjust based on resource type
+            
+            # Draw the resource name
+            pyxel.text(resource_draw_x, resource_draw_y+6, resource_name, 7)
+            
+            # Draw the resource amount
+            resource_draw_x = RESOURCES_BASE_X + 26 + 18
+            pyxel.text(resource_draw_x, resource_draw_y+6, f'{resource_amount}/{resource_max}', 7)
+            
+            # Draw the resource sprite (if needed)
+            sprite_x, sprite_y = resource_sprites[resource]
+            # Assuming TILE_WIDTH and TILE_HEIGHT are defined elsewhere
+            pyxel.blt(RESOURCES_BASE_X + 1, resource_draw_y, 0, sprite_x, sprite_y, TILE_WIDTH, TILE_HEIGHT, 0)
+            iteration_index+=1
 
     def draw_buildings(self):
         # get a map from building manager:
