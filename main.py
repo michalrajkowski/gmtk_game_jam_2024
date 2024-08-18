@@ -1,5 +1,7 @@
 import pyxel
 import random
+from building_manager import BuildingManager
+from buildings import Building
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -27,6 +29,9 @@ class App:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Pyxel Bubbles", capture_scale=1)
         pyxel.mouse(True)
 
+        # generate all managers
+        self.building_manager = BuildingManager()
+
         self.generate_tile_map()
         # resources:
         self.resource_names = ["wood", "stone", "food", "iron"]
@@ -53,6 +58,7 @@ class App:
         pyxel.cls(0)
         # pyxel.text(55, 41, "Hello, Pyxel!", pyxel.frame_count % 16)
         self.draw_tile_map()
+        self.draw_buildings()
         self.mouse_hover_tile_select()
         self.draw_resources()
         self.draw_choice_pane()
@@ -161,6 +167,20 @@ class App:
             tile_u = choice_resource_sprite_number*TILE_WIDTH
             tile_v = 2*TILE_HEIGHT
             pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, TILE_WIDTH, TILE_HEIGHT,0)
+
+    def draw_buildings(self):
+        # get a map from building manager:
+        # for all buildings there:
+        # get its x,y
+        # get its sprite
+        # draw building there!
+        for building in self.building_manager.building_dict.values():
+            building: Building = building
+            (sprite_u, sprite_v) = (building.sprite_coords[0], building.sprite_coords[1])
+            (tile_x, tile_y) = (building.x, building.y)
+            draw_x = TILE_WIDTH*tile_x
+            draw_y = TILE_HEIGHT*tile_y
+            pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT,0)
                 
 
 App()

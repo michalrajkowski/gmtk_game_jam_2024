@@ -33,3 +33,16 @@ Layers:
 - particle layer
 - building/UI layer?
 - text layer?
+
+
+Building manager:
+- buildings list / dict?
+- building objects
+- texture
+- mechanics?
+
+Units / sims:
+- spawned by building
+- simulated each frame
+- walking to their destination
+- carring back resources
