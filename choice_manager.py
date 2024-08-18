@@ -3,6 +3,8 @@ import math
 import random
 from enum import Enum
 from resource_manager import ResourceManager,ResourcesIndex, resource_sprites
+from buildings import Building, House
+from placer_manager import PlacerManager
 # stores current choices
 # choices has id and types
 # and costs?
@@ -30,13 +32,17 @@ class ResourceChoice(Choice):
         self.sprite_coords = resource_sprites[resource_enum]
 
 class BuildingChoice(Choice):
-    def __init__(self) -> None:
+    def __init__(self, building:Building) -> None:
         super().__init__()
         self.is_building_choice = True
+        self.building:Building = building
+        self.sprite_coords = building.sprite_coords
 
 class ChoiceManager:
-    def __init__(self, CHOICE_BAR_SIZE,CHOICE_PANE_BASE_X,CHOICE_PANE_BASE_Y,TILE_WIDTH,TILE_HEIGHT,resource_manager:ResourceManager) -> None:
+    def __init__(self, CHOICE_BAR_SIZE,CHOICE_PANE_BASE_X,CHOICE_PANE_BASE_Y,TILE_WIDTH,TILE_HEIGHT,resource_manager:ResourceManager,
+                 placer_manager:PlacerManager) -> None:
         self.resource_manager=resource_manager
+        self.placer_manager = placer_manager
         self.CHOICE_PANE_BASE_X = CHOICE_PANE_BASE_X
         self.CHOICE_PANE_BASE_Y = CHOICE_PANE_BASE_Y
         self.TILE_WIDTH = TILE_WIDTH
@@ -83,6 +89,17 @@ class ChoiceManager:
     def handle_click(self, clicked_index):
         this_choice : Choice = self.choice_bar[clicked_index]
         if this_choice.is_building_choice:
+            # decrement resources
+            this_choice: BuildingChoice = this_choice
+    
+            for resource, cost in this_choice.building.building_cost.items():
+                self.resource_manager.increment_resource(resource, -1*cost)
+            # enter placing mode with this building
+            self.placer_manager.placing_mode=True
+            self.placer_manager.placing_object = this_choice.building
+
+            # clear choice bar
+            self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
             pass
         elif this_choice.is_resource_choice:
             # increment resource 
@@ -105,6 +122,5 @@ class ChoiceManager:
             resource_type = random.choice(list(ResourcesIndex)).value
             choice = ResourceChoice(resource_type=resource_type)
             self.choice_bar[i] = choice
-
-
-    
+        self.choice_bar[0] = BuildingChoice(Building(0,0))
+        self.choice_bar[1] = BuildingChoice(House(0,0))
