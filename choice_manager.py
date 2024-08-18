@@ -54,9 +54,11 @@ class ChoiceManager:
 
         self.choice_bar_size = CHOICE_BAR_SIZE
         self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
-        self.cooldown = 9.99
-        self.max_cooldown = 9.99
+        self.cooldown = 2.99
+        self.max_cooldown = 2.99
         self.choice_queue = []
+        self.max_choice_queue = 4
+        self.extra_choices = []
     
     def draw_choice_pane(self):
         for i in range(self.choice_bar_size):
@@ -106,7 +108,7 @@ class ChoiceManager:
             (tile_u, tile_v) = (32,48)
             pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, self.TILE_WIDTH, self.TILE_HEIGHT)
             spare_choices_number_str = str(len(self.choice_queue))
-            pyxel.text(choice_draw_x+2, choice_draw_y+5, f"{spare_choices_number_str}/4",7)
+            pyxel.text(choice_draw_x+2, choice_draw_y+5, f"{spare_choices_number_str}/{self.max_choice_queue}",7)
 
     def handle_click(self, clicked_index):
         this_choice : Choice = self.choice_bar[clicked_index]
@@ -121,14 +123,18 @@ class ChoiceManager:
             self.placer_manager.placing_object = this_choice.building
 
             # clear choice bar
-            self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
+            self.choice_queue.remove(self.choice_bar)
+            self.get_choicebar_from_queue()
             return
         elif this_choice.is_resource_choice:
             # increment resource 
             # set all choices to null
             this_choice: ResourceChoice = this_choice
             self.resource_manager.increment_resource(ResourcesIndex.from_value(this_choice.resource_type), this_choice.resource_amount)
-            self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
+            
+            # clear choice bar
+            self.choice_queue.remove(self.choice_bar)
+            self.get_choicebar_from_queue()
         else:
             # null choice
             return
@@ -146,19 +152,29 @@ class ChoiceManager:
         self.cooldown -= float(1/30)
         if self.cooldown <= 0:
             self.cooldown = self.max_cooldown
-            self.generate_choices()
+            if len(self.choice_queue) < self.max_choice_queue:
+                self.generate_choices()
+        self.get_choicebar_from_queue()
+    def get_choicebar_from_queue(self):
+        if len(self.choice_queue) != 0:
+            self.choice_bar = self.choice_queue[0]
+        else:
+            self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
 
     def generate_choices(self):
         # find what buildings can be built
         possible_to_build = self.building_manager.buildings_possible_to_build()
+        temp_choice_bar = []
         for i in range(self.choice_bar_size):
             building_choice = random.randint(0, len(possible_to_build)+4)
             if (building_choice< len(possible_to_build)):
                 choosen_building = copy.deepcopy(possible_to_build[building_choice])
                 new_building = choosen_building
                 choice = BuildingChoice(new_building)
-                self.choice_bar[i] = choice
+                temp_choice_bar.append(choice)
             else:
+                # TODO chooses from all items, needs some filtrations maybe?
                 resource_type = random.choice(list(ResourcesIndex)).value
                 choice = ResourceChoice(resource_type=resource_type)
-                self.choice_bar[i] = choice
+                temp_choice_bar.append(choice)
+        self.choice_queue.append(temp_choice_bar)
