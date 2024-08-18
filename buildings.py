@@ -14,6 +14,7 @@ class Building:
         self.sprite_coords = (0, 64)
         self.building_cost = {}
         self.can_be_placed_on = [TileIndex.PLAINS]
+        self.description = ""
 
 class House(Building):
     def __init__(self, x=0, y=0):
@@ -24,6 +25,7 @@ class House(Building):
             ResourcesIndex.STONE: 1,
             ResourcesIndex.WOOD: 1
         }
+        self.description = "- gather resources from neighbour tiles"
 class Mine(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)

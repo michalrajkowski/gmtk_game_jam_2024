@@ -54,8 +54,9 @@ class ChoiceManager:
 
         self.choice_bar_size = CHOICE_BAR_SIZE
         self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
-        self.cooldown = 3.0
-        self.max_cooldown = 3.0
+        self.cooldown = 9.99
+        self.max_cooldown = 9.99
+        self.choice_queue = []
     
     def draw_choice_pane(self):
         for i in range(self.choice_bar_size):
@@ -90,6 +91,23 @@ class ChoiceManager:
             number_int = str(round(self.cooldown, 1))
         pyxel.text(choice_draw_x+3, choice_draw_y+5, number_int, 7)
 
+        # Draw cancel button
+        if self.placer_manager.placing_mode == True:
+            choice_draw_x = self.CHOICE_PANE_BASE_X + self.TILE_WIDTH*(self.choice_bar_size+1)
+            choice_draw_y = self.CHOICE_PANE_BASE_Y
+            (tile_u, tile_v) = (48,48)
+            pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, self.TILE_WIDTH, self.TILE_HEIGHT)
+        else:
+            # Draw spare choices
+            choice_draw_x = self.CHOICE_PANE_BASE_X + self.TILE_WIDTH*(self.choice_bar_size+1)
+            choice_draw_y = self.CHOICE_PANE_BASE_Y
+            # (tile_u, tile_v) = (48,48)
+            # pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, self.TILE_WIDTH, self.TILE_HEIGHT)
+            (tile_u, tile_v) = (32,48)
+            pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, self.TILE_WIDTH, self.TILE_HEIGHT)
+            spare_choices_number_str = str(len(self.choice_queue))
+            pyxel.text(choice_draw_x+2, choice_draw_y+5, f"{spare_choices_number_str}/4",7)
+
     def handle_click(self, clicked_index):
         this_choice : Choice = self.choice_bar[clicked_index]
         if this_choice.is_building_choice:
@@ -104,7 +122,7 @@ class ChoiceManager:
 
             # clear choice bar
             self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
-            pass
+            return
         elif this_choice.is_resource_choice:
             # increment resource 
             # set all choices to null
@@ -113,7 +131,16 @@ class ChoiceManager:
             self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
         else:
             # null choice
-            pass
+            return
+    def hover_over_choice(self, hover_index):
+        this_choice : Choice = self.choice_bar[hover_index]
+        if this_choice.is_building_choice:
+            # decrement resources
+            this_choice: BuildingChoice = this_choice
+            this_choice_building = this_choice.building
+            self.placer_manager.choice_hover = this_choice_building
+            
+
 
     def simulate(self):
         self.cooldown -= float(1/30)

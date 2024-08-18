@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 
 class TileIndex(Enum):
     PLAINS = 0
@@ -19,6 +20,20 @@ tile_sprites = {
     TileIndex.MONTAIN : (16,0),
     TileIndex.RIVER : (48,0),
 }
+
+tile_names = {
+    TileIndex.PLAINS : "Plains",
+    TileIndex.FOREST : "Forest",
+    TileIndex.MONTAIN : "Montain",
+    TileIndex.RIVER : "River",
+}
+
+tile_descriptions = {
+    TileIndex.PLAINS : "- good for placing buildings\n- does not produce any resource",
+    TileIndex.FOREST : "- source of Wood",
+    TileIndex.MONTAIN : "- source of Stone\n- hides rare ores and gems",
+    TileIndex.RIVER : "- source of Food",
+}
 class TileManager:
     def __init__(self, TILE_MAP_WIDTH, TILE_MAP_HEIGHT) -> None:
         self.TILE_MAP_WIDTH = TILE_MAP_WIDTH
@@ -27,3 +42,8 @@ class TileManager:
 
     def generate_tilemap(self):
         self.tile_map = [[0 for _ in range(self.TILE_MAP_HEIGHT)] for _ in range(self.TILE_MAP_WIDTH)]
+        for y in range(0, self.TILE_MAP_HEIGHT):
+            for x in range(0, self.TILE_MAP_WIDTH):
+                plane_chance = 0.75
+                if (random.random() > plane_chance):
+                    self.tile_map[y][x] = random.randint(1,3)

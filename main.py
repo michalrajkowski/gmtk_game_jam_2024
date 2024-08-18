@@ -47,7 +47,8 @@ class App:
                                             CHOICE_PANE_BASE_Y=CHOICE_PANE_BASE_Y, 
                                             TILE_WIDTH=TILE_WIDTH,
                                             TILE_HEIGHT=TILE_HEIGHT)
-        self.descriptions_manager = DescriptionsManager()
+        self.descriptions_manager = DescriptionsManager(placer_manager=self.placer_manager,
+                                                        tile_manager=self.tile_manager)
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")
@@ -60,6 +61,8 @@ class App:
             pyxel.quit()
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             self.mouse_click_interaction()
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_RIGHT):
+            self.placer_manager.reset()
 
         self.choice_manager.simulate()
         
@@ -72,6 +75,8 @@ class App:
         self.mouse_hover_tile_select()
         self.draw_resources()
         self.choice_manager.draw_choice_pane()
+        self.placer_manager.draw_selected()
+        self.descriptions_manager.draw_selected_description()
         # pyxel.blt(61, 66, 0, 0, 0, 38, 16)
 
     def draw_tile_map(self):
@@ -95,11 +100,22 @@ class App:
                 # pyxel.rect(tile_draw_x, tile_draw_y, TILE_WIDTH, TILE_HEIGHT, (tile_x+tile_y)%16)
     
     def mouse_hover_tile_select(self):
-        # Get the tile x/y which mouse is currently hovering over
-        # Draw UI select effect on the tile field
-        
-        # Get tile x/y:
-        # - 
+        # handling choice bar
+        if (pyxel.mouse_y >= CHOICE_PANE_BASE_Y and pyxel.mouse_y < CHOICE_PANE_BASE_Y+16 and 
+            pyxel.mouse_x >= CHOICE_PANE_BASE_X and pyxel.mouse_x < CHOICE_PANE_BASE_X+16*CHOICE_BAR_SIZE):
+            # We clicked the choice bar choice:
+            hovered_index = int((pyxel.mouse_x - CHOICE_PANE_BASE_X)/16)
+            self.choice_manager.hover_over_choice(hovered_index)
+            return 
+        self.placer_manager.choice_hover = None
+
+        # cancel button handling:
+        if (pyxel.mouse_y >= CHOICE_PANE_BASE_Y and pyxel.mouse_y < CHOICE_PANE_BASE_Y+16 and 
+            pyxel.mouse_x > CHOICE_PANE_BASE_X+16*(CHOICE_BAR_SIZE+1) and pyxel.mouse_x < CHOICE_PANE_BASE_X+16*(CHOICE_BAR_SIZE+2)):
+            self.placer_manager.cancel_hover = True
+            return
+        self.placer_manager.cancel_hover = False
+
         if (pyxel.mouse_x >= TILE_MAP_WIDTH*TILE_WIDTH or pyxel.mouse_y >= TILE_MAP_HEIGHT*TILE_HEIGHT ):
             return
         # Get tile idex_x and y
@@ -115,21 +131,19 @@ class App:
         pyxel.blt(tile_draw_x, tile_draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT, 0)
     
     def mouse_click_interaction(self):
-        # get the tile
+        # handling choice bar
         if (pyxel.mouse_y >= CHOICE_PANE_BASE_Y and pyxel.mouse_y < CHOICE_PANE_BASE_Y+16 and 
             pyxel.mouse_x >= CHOICE_PANE_BASE_X and pyxel.mouse_x < CHOICE_PANE_BASE_X+16*CHOICE_BAR_SIZE):
             # We clicked the choice bar choice:
             clicked_index = int((pyxel.mouse_x - CHOICE_PANE_BASE_X)/16)
             self.choice_manager.handle_click(clicked_index=clicked_index)
             return 
-        
-            # handle this click:
-            # - update resources based on clicked one
-            # - generate new random click resources
-            resource_idex = self.choice_bar_choices[clicked_index]
-            self.resource_amount[resource_idex]+=1
 
-            self.choice_bar_choices = [random.randint(0,3) for _ in range(self.choice_bar_choices_num)]
+        # cancel button handling:
+        if (pyxel.mouse_y >= CHOICE_PANE_BASE_Y and pyxel.mouse_y < CHOICE_PANE_BASE_Y+16 and 
+            pyxel.mouse_x > CHOICE_PANE_BASE_X+16*(CHOICE_BAR_SIZE+1) and pyxel.mouse_x < CHOICE_PANE_BASE_X+16*(CHOICE_BAR_SIZE+2)):
+            self.placer_manager.reset()
+            return
 
         # TODO: we can click somewhere else it will not be the map interaction then
         if (pyxel.mouse_x >= TILE_MAP_WIDTH*TILE_WIDTH or pyxel.mouse_y >= TILE_MAP_HEIGHT*TILE_HEIGHT ):
@@ -145,7 +159,9 @@ class App:
             self.building_manager.build_building(self.placer_manager.placing_object, tile_x, tile_y)
             self.placer_manager.reset()
         else:
-            self.tile_manager.tile_map[tile_y][tile_x] = (self.tile_manager.tile_map[tile_y][tile_x]+random.randint(1,3))%4
+            # we can select something
+            self.placer_manager.reset()
+            self.placer_manager.select(tile_y=tile_y, tile_x=tile_x)
     
     def draw_resources(self):
         iteration_index = 0
@@ -179,6 +195,5 @@ class App:
             draw_x = TILE_WIDTH*tile_x
             draw_y = TILE_HEIGHT*tile_y
             pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT,0)
-                
 
 App()

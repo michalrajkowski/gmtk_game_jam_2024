@@ -10,10 +10,18 @@ class PlacerManager:
         self.placing_mode = False
         self.placing_object = None
         self.building_manager = building_manager
+        
+        self.selected_tile = None
+        self.selected_object = None
+        
+        self.choice_hover = None
+        self.cancel_hover = False
 
     def reset(self):
         self.placing_mode = False
         self.placing_object = None
+        self.selected_tile = None
+        self.selected_object = None
 
     def get_placer_icon(self, tile_y, tile_x):
         if (self.placing_mode == False):
@@ -23,3 +31,14 @@ class PlacerManager:
             return placer_icons["building"]
         else:
             return placer_icons["building_invalid"]
+    
+    def select(self, tile_y, tile_x):
+        if self.building_manager.is_occupied(tile_x=tile_x, tile_y=tile_y):
+            self.selected_object = self.building_manager.get_building(tile_x=tile_x, tile_y=tile_y)
+        self.selected_tile = (tile_x, tile_y)
+
+    def draw_selected(self):
+        if self.selected_object != None:
+            self.building_manager.draw_building(self.selected_object)
+        elif self.selected_tile != None:
+            self.building_manager.draw_selection(self.selected_tile[0], self.selected_tile[1])
