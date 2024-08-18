@@ -1,5 +1,6 @@
-from resource_manager import ResourceManager,ResourcesIndex, resource_sprites
-from tile_manager import TileIndex
+from resource_manager import ResourceManager,ResourcesIndex, resource_sprites, resources_from_tiles
+from tile_manager import TileIndex, TileManager
+import random
 # jakie cechy powinien mieć base building
 # - pozycja
 # - sprite pos?
@@ -8,6 +9,7 @@ from tile_manager import TileIndex
 class Building:
     def __init__(self, x=0, y=0):
         self.resource_manager: ResourceManager = None
+        self.tile_manager: TileManager = None
         self.id = 0
         self.name = "MISSING NAME"
         self.x = x
@@ -22,6 +24,8 @@ class Building:
         
         self.max_cooldown = 1.0
         self.current_cooldown = self.max_cooldown
+
+        self.radius = 0
 
         self.is_moving_unit = False
         self.move_me = False
@@ -44,7 +48,21 @@ class House(Building):
             ResourcesIndex.STONE: 1,
             ResourcesIndex.WOOD: 1
         }
+        self.radius = 1
+        self.max_cooldown = 1.0
+        self.current_cooldown = self.max_cooldown
+
         self.description = "- gather resources from neighbour tiles"
+
+    def do_building_action(self):
+        # Try to gather random resource from neibhour stuff
+        neighbour_fields = self.tile_manager.get_neigbour_tiles(self.x, self.y, self.radius)
+        random.shuffle(neighbour_fields)
+        for i in neighbour_fields:
+            if TileIndex.from_value(i) in [TileIndex.FOREST, TileIndex.MONTAIN, TileIndex.RIVER]:
+                # gather resource, return
+                self.resource_manager.increment_resource(resources_from_tiles[TileIndex.from_value(i)], 1)
+                return
 
 class Mine(Building):
     def __init__(self, x=0, y=0):
@@ -81,6 +99,10 @@ class Tower(Building):
             ResourcesIndex.STONE: 5,
             ResourcesIndex.WOOD: 2
         }
+
+        self.radius = 2
+
+        
 class MovingUnit(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)
@@ -107,3 +129,5 @@ class King(MovingUnit):
         self.sprite_coords = (80,64)
         self.max_hp = 20
         self.current_hp = self.max_hp
+        self.speed = 0.2
+        self.speed_cooldown = self.speed

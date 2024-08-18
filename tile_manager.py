@@ -47,3 +47,18 @@ class TileManager:
                 plane_chance = 0.75
                 if (random.random() > plane_chance):
                     self.tile_map[y][x] = random.randint(1,3)
+
+    def is_in_tilemap(self, x, y):
+        if (0 <= x < 12 and 0 <= y < 12):
+            return True
+        return False
+    def get_neigbour_tiles(self, point_x,point_y,radius):
+        nei_tiles=[]
+        for y in range(point_y - radius, point_y+radius+1):
+            for x in range(point_x - radius, point_x + radius+1):
+                if (not self.is_in_tilemap(x,y)):
+                    continue
+                if (x == point_x and y == point_y):
+                    continue
+                nei_tiles.append(self.tile_map[y][x])
+        return nei_tiles

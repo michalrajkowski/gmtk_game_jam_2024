@@ -57,6 +57,7 @@ class BuildingManager:
         building.y = y
         self.building_dict[(y,x)] = building
         building.resource_manager = self.resource_manager
+        building.tile_manager = self.tile_manager
 
     def draw_building(self, building: Building):
         (tile_x, tile_y) = (building.x, building.y)

@@ -1,4 +1,5 @@
 from enum import Enum
+from tile_manager import TileIndex
 
 class ResourcesIndex(Enum):
     WOOD = 1
@@ -21,6 +22,12 @@ class ResourcesIndex(Enum):
                 return item
         raise ValueError(f"Invalid value: {value}")
 
+
+resources_from_tiles = {
+    TileIndex.FOREST : ResourcesIndex.WOOD,
+    TileIndex.MONTAIN : ResourcesIndex.STONE,
+    TileIndex.RIVER : ResourcesIndex.FOOD
+}
 # All BLANK entries share the same sprite as IRON
 resource_sprites = {
     ResourcesIndex.WOOD: (16, 32),

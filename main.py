@@ -7,6 +7,7 @@ from resource_manager import ResourceManager, ResourcesIndex, resource_names, re
 from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites
 from descriptions_manager import DescriptionsManager
+from buildings import Building
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -128,6 +129,15 @@ class App:
 
         # load hover mouse sprite?
         (sprite_u, sprite_v) = self.placer_manager.get_placer_icon(tile_y, tile_x)
+        if (self.placer_manager.placing_object != None):
+            building_being_placed:Building = self.placer_manager.placing_object
+            if building_being_placed.radius > 0:
+                # Draw rectangle
+                rect_x = tile_draw_x - (building_being_placed.radius)*16
+                rect_y = tile_draw_y - (building_being_placed.radius)*16
+                rect_w = (2*(building_being_placed.radius) +1)*16
+                rect_h = (2*(building_being_placed.radius) +1)*16
+                pyxel.rectb(rect_x, rect_y, rect_w, rect_h, 7)
         if pyxel.btn(pyxel.KEY_CTRL):
             if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
                 if (self.building_manager.try_to_move(tile_x, tile_y)):

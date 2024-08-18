@@ -54,8 +54,8 @@ class ChoiceManager:
 
         self.choice_bar_size = CHOICE_BAR_SIZE
         self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
-        self.cooldown = 1.99
-        self.max_cooldown = 1.99
+        self.cooldown = 0.99
+        self.max_cooldown = 0.99
         self.choice_queue = []
         self.max_choice_queue = 4
         self.extra_choices = []
