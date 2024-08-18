@@ -6,6 +6,7 @@ from buildings import Building
 from resource_manager import ResourceManager, ResourcesIndex, resource_names, resource_sprites
 from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites
+from descriptions_manager import DescriptionsManager
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -34,17 +35,19 @@ class App:
         pyxel.mouse(True)
 
         # generate all managers
-        self.tile_manager = TileManager(TILE_MAP_WIDTH=TILE_MAP_WIDTH, TILE_MAP_HEIGHT=TILE_MAP_HEIGHT)
-        self.building_manager = BuildingManager(tile_manager=self.tile_manager)
-        self.placer_manager = PlacerManager(building_manager=self.building_manager)
         self.resource_manager = ResourceManager()
+        self.tile_manager = TileManager(TILE_MAP_WIDTH=TILE_MAP_WIDTH, TILE_MAP_HEIGHT=TILE_MAP_HEIGHT)
+        self.building_manager = BuildingManager(tile_manager=self.tile_manager, resource_manager=self.resource_manager)
+        self.placer_manager = PlacerManager(building_manager=self.building_manager)
         self.choice_manager = ChoiceManager(resource_manager=self.resource_manager,
                                             placer_manager=self.placer_manager,
+                                            building_manager=self.building_manager,
                                             CHOICE_BAR_SIZE=CHOICE_BAR_SIZE, 
                                             CHOICE_PANE_BASE_X=CHOICE_PANE_BASE_X, 
                                             CHOICE_PANE_BASE_Y=CHOICE_PANE_BASE_Y, 
                                             TILE_WIDTH=TILE_WIDTH,
                                             TILE_HEIGHT=TILE_HEIGHT)
+        self.descriptions_manager = DescriptionsManager()
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")

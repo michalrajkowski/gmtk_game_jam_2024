@@ -5,6 +5,8 @@ from enum import Enum
 from resource_manager import ResourceManager,ResourcesIndex, resource_sprites
 from buildings import Building, House
 from placer_manager import PlacerManager
+from building_manager import BuildingManager
+import copy
 # stores current choices
 # choices has id and types
 # and costs?
@@ -40,7 +42,9 @@ class BuildingChoice(Choice):
 
 class ChoiceManager:
     def __init__(self, CHOICE_BAR_SIZE,CHOICE_PANE_BASE_X,CHOICE_PANE_BASE_Y,TILE_WIDTH,TILE_HEIGHT,resource_manager:ResourceManager,
-                 placer_manager:PlacerManager) -> None:
+                 placer_manager:PlacerManager,
+                 building_manager:BuildingManager) -> None:
+        self.building_manager = building_manager
         self.resource_manager=resource_manager
         self.placer_manager = placer_manager
         self.CHOICE_PANE_BASE_X = CHOICE_PANE_BASE_X
@@ -118,9 +122,16 @@ class ChoiceManager:
             self.generate_choices()
 
     def generate_choices(self):
+        # find what buildings can be built
+        possible_to_build = self.building_manager.buildings_possible_to_build()
         for i in range(self.choice_bar_size):
-            resource_type = random.choice(list(ResourcesIndex)).value
-            choice = ResourceChoice(resource_type=resource_type)
-            self.choice_bar[i] = choice
-        self.choice_bar[0] = BuildingChoice(Building(0,0))
-        self.choice_bar[1] = BuildingChoice(House(0,0))
+            building_choice = random.randint(0, len(possible_to_build)+4)
+            if (building_choice< len(possible_to_build)):
+                choosen_building = copy.deepcopy(possible_to_build[building_choice])
+                new_building = choosen_building
+                choice = BuildingChoice(new_building)
+                self.choice_bar[i] = choice
+            else:
+                resource_type = random.choice(list(ResourcesIndex)).value
+                choice = ResourceChoice(resource_type=resource_type)
+                self.choice_bar[i] = choice
