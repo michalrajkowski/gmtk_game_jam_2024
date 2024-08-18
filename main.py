@@ -34,9 +34,9 @@ class App:
         pyxel.mouse(True)
 
         # generate all managers
-        self.placer_manager = PlacerManager()
         self.tile_manager = TileManager(TILE_MAP_WIDTH=TILE_MAP_WIDTH, TILE_MAP_HEIGHT=TILE_MAP_HEIGHT)
         self.building_manager = BuildingManager(tile_manager=self.tile_manager)
+        self.placer_manager = PlacerManager(building_manager=self.building_manager)
         self.resource_manager = ResourceManager()
         self.choice_manager = ChoiceManager(resource_manager=self.resource_manager,
                                             placer_manager=self.placer_manager,
@@ -90,6 +90,7 @@ class App:
 
                 pyxel.blt(tile_draw_x, tile_draw_y, 0, tile_u, tile_v, TILE_WIDTH, TILE_HEIGHT)
                 # pyxel.rect(tile_draw_x, tile_draw_y, TILE_WIDTH, TILE_HEIGHT, (tile_x+tile_y)%16)
+    
     def mouse_hover_tile_select(self):
         # Get the tile x/y which mouse is currently hovering over
         # Draw UI select effect on the tile field
@@ -106,10 +107,9 @@ class App:
         tile_draw_y = tile_y*TILE_HEIGHT
 
         # load hover mouse sprite?
-        ui_hover_u = 0
-        ui_hover_v = 16
+        (sprite_u, sprite_v) = self.placer_manager.get_placer_icon(tile_y, tile_x)
         
-        pyxel.blt(tile_draw_x, tile_draw_y, 0, ui_hover_u, ui_hover_v, TILE_WIDTH, TILE_HEIGHT, 0)
+        pyxel.blt(tile_draw_x, tile_draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT, 0)
     
     def mouse_click_interaction(self):
         # get the tile
