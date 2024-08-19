@@ -39,6 +39,6 @@ class PlacerManager:
 
     def draw_selected(self):
         if self.selected_object != None:
-            self.building_manager.draw_building(self.selected_object)
+            self.building_manager.draw_selection_building(self.selected_object)
         elif self.selected_tile != None:
             self.building_manager.draw_selection(self.selected_tile[0], self.selected_tile[1])

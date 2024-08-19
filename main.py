@@ -145,6 +145,8 @@ class App:
             if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
                 if (self.building_manager.try_to_move(tile_x, tile_y)):
                     (sprite_u, sprite_v) = (80,16)
+                elif(self.building_manager.try_attack(tile_x, tile_y ,self.placer_manager.selected_object)):
+                    (sprite_u, sprite_v) = (112, 16)
                 else:
                     (sprite_u, sprite_v) = (96,16)
 
@@ -183,7 +185,10 @@ class App:
             if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
                 # Try to move
                 if (self.building_manager.try_to_move(tile_x, tile_y)):
-                    self.building_manager.set_move_destination(tile_x,tile_y,self.placer_manager.selected_object)
+                    self.building_manager.set_move_destination(tile_x,tile_y,self.placer_manager.selected_object, from_main=True)
+                elif(self.building_manager.try_attack(tile_x, tile_y ,self.placer_manager.selected_object)):
+                    self.building_manager.select_attack_target(tile_x, tile_y ,self.placer_manager.selected_object)
+
         else:
             # we can select something
             self.placer_manager.reset()

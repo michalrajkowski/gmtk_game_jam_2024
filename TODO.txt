@@ -48,3 +48,7 @@ Units / sims:
 - carring back resources
 
 TODO: show increasement amount next to resources
+
+
+// Working on Focus mechanics
+- 

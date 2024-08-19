@@ -15,8 +15,13 @@ class BuildingManager:
         self.resource_manager = resource_manager
         self.tile_manager = tile_manager
         self.building_dict = {
-            (6,6):King(6,6)
+            # (6,6):King(6,6),
+            #(10,10):House(10,10)
         }
+        # Initialize structures
+        self.build_building(King(6,6), 6,6)
+
+        #self.building_dict[(6,6)].focused_enemy = self.building_dict[(10,10)]
         self.possible_buildings = [
             House(),
             Mine(),
@@ -26,24 +31,40 @@ class BuildingManager:
 
     def simulate(self):
         to_move_list = []
-        for building in self.building_dict.values():
+        for building in list(self.building_dict.values()):
             building.simulate_building()
             if building.is_moving_unit:
                 building :MovingUnit= building
                 if building.move_me == True:
                     building.move_me = False
+                    move_to_focused_enemy = False
+                    if building.focused_enemy != None:
+                        move_to_focused_enemy = True
+                        building.moving_destination = (building.focused_enemy.x, building.focused_enemy.y)
                     if building.moving_destination == None:
                         continue
                     # move unit next step
-                    to_move_list.append(building)
-        for building in to_move_list:
-            (move_x, move_y) = self.generate_next_move_step(building=building)
+                    to_move_list.append((building, move_to_focused_enemy))
+        for pair in to_move_list:
+            (building, move_to_focused_enemy) = pair
+            (move_x, move_y) = self.generate_next_move_step(building=building, move_to_focused_enemy=move_to_focused_enemy)
             if (move_x == -1):
                 continue
             # move to the next move step!
             self.move_building(building, move_x, move_y)
             if (move_x == building.moving_destination[0] and move_y == building.moving_destination[1]):
                 building.moving_destination=None
+
+    def check_if_exists(self, building: Building):
+        if not building in self.building_dict.values():
+            return False
+        return True
+    
+    def delete_building(self, building: Building):
+        if not building in self.building_dict.values():
+            return False
+        dict_key = (building.y, building.x)
+        del self.building_dict[dict_key]
 
     def move_building(self, building: Building, new_x, new_y):
         dict_key = (building.y, building.x)
@@ -58,16 +79,25 @@ class BuildingManager:
         self.building_dict[(y,x)] = building
         building.resource_manager = self.resource_manager
         building.tile_manager = self.tile_manager
+        building.building_manager = self
 
-    def draw_building(self, building: Building):
+    def draw_selection_building(self, building: Building):
         (tile_x, tile_y) = (building.x, building.y)
-        self.draw_selection(tile_x, tile_y)
+        self.draw_selection(tile_x, tile_y, enemy_mark=False)
+        if (building.focused_enemy != None):
+            (tile_x, tile_y) = (building.focused_enemy.x, building.focused_enemy.y)
+            self.draw_selection(tile_x, tile_y, enemy_mark=True)
+
         
-    def draw_selection(self, tile_x, tile_y):
+    def draw_selection(self, tile_x, tile_y, enemy_mark=False):
         if (pyxel.frame_count%60 > 30):
             (select_u, select_v) = (48, 16)
+            if enemy_mark:
+                (select_u, select_v) = (128, 16)
         else:
             (select_u, select_v) = (64, 16)
+            if enemy_mark:
+                (select_u, select_v) = (144, 16)
         tile_draw_x = tile_x*16
         tile_draw_y = tile_y*16
         pyxel.blt(tile_draw_x, tile_draw_y, 0, select_u, select_v, 16, 16, 0)
@@ -77,14 +107,23 @@ class BuildingManager:
             return False
         return True
     
+    def try_attack(self, tile_x, tile_y, building : Building):
+        if (tile_y, tile_x) in self.building_dict: # and self.building_dict[(tile_y, tile_x)].player_faction != building.player_faction
+            return True
+        return False
+    
+    def select_attack_target(self, tile_x, tile_y, building : Building):
+        building.focused_enemy = self.building_dict[(tile_y, tile_x)]
+
+    
     # Function that finds path between current position of unit and the move goal of it
-    def generate_next_move_step(self, building:MovingUnit):
-        path = self.bfs_shortest_path(building.x, building.y, building.moving_destination[0], building.moving_destination[1])
-        if (len(path) > 0):
+    def generate_next_move_step(self, building:MovingUnit, move_to_focused_enemy):
+        path = self.bfs_shortest_path(building.x, building.y, building.moving_destination[0], building.moving_destination[1], move_to_focused_enemy)
+        if (len(path) > 1):
             return path[1]
         return (-1, -1)
     
-    def bfs_shortest_path(self, start_x, start_y, goal_x, goal_y):
+    def bfs_shortest_path(self, start_x, start_y, goal_x, goal_y, move_to_focused_enemy):
         # Directions for moving in 4 possible directions (up, down, left, right)
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         
@@ -100,7 +139,8 @@ class BuildingManager:
             x, y = queue.popleft()
             
             # Check if the goal is reached
-            if (x, y) == (goal_x, goal_y):
+
+            if (x, y) == (goal_x, goal_y) or (move_to_focused_enemy and goal_x-1<=x <= goal_x+1 and goal_y-1<=y<=goal_y+1):
                 # Reconstruct the path from goal to start using the parent dictionary
                 path = []
                 while (x, y) != (start_x, start_y):
@@ -123,7 +163,9 @@ class BuildingManager:
         # If the goal is not reachable, return an empty list
         return []
 
-    def set_move_destination(self, tile_x, tile_y, building:Building):
+    def set_move_destination(self, tile_x, tile_y, building:Building, from_main=False):
+        if from_main == True:
+            building.focused_enemy = None
         building : MovingUnit = building
         building.moving_destination = (tile_x, tile_y)
 

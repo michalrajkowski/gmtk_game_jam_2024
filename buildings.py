@@ -12,6 +12,7 @@ class Building:
         self.resource_manager: ResourceManager = None
         self.tile_manager: TileManager = None
         self.particle_manager = ParticleManager()
+        self.building_manager = None
         self.id = 0
         self.name = "MISSING NAME"
         self.x = x
@@ -20,10 +21,14 @@ class Building:
         self.building_cost = {}
         self.can_be_placed_on = [TileIndex.PLAINS]
         self.description = ""
+
+        self.player_faction = True
+        self.focused_enemy=None
         
         self.max_hp = 1
         self.current_hp = self.max_hp
-        
+        self.exists = True
+
         self.max_cooldown = 1.0
         self.current_cooldown = self.max_cooldown
 
@@ -34,6 +39,11 @@ class Building:
 
     def simulate_building(self):
         self.current_cooldown -= float(1/30)
+        print(self.building_manager)
+        if self.focused_enemy!= None:
+            # check if exists
+            if not self.building_manager.check_if_exists(self.focused_enemy):
+                self.focused_enemy = None
         if (self.current_cooldown <= 0.0):
             self.current_cooldown = self.max_cooldown
             self.do_building_action()
@@ -94,6 +104,13 @@ class Fishermans(Building):
             ResourcesIndex.WOOD: 3
         }
         self.can_be_placed_on = [TileIndex.RIVER]
+        self.max_cooldown = 5.0
+        self.current_cooldown = self.max_cooldown
+
+    def do_building_action(self):
+        self.building_manager.delete_building(self)
+
+
 class Tower(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)
@@ -116,6 +133,7 @@ class MovingUnit(Building):
         self.max_hp = 4
         self.current_hp = self.max_hp
         self.moving_destination = None
+        #self.focused_enemy = None
     def simulate_building(self):
         super().simulate_building()
         self.speed_cooldown -= float(1/30)
@@ -135,3 +153,6 @@ class King(MovingUnit):
         self.current_hp = self.max_hp
         self.speed = 0.2
         self.speed_cooldown = self.speed
+
+    def simulate_building(self):
+        super().simulate_building()
