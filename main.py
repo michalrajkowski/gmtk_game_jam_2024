@@ -142,7 +142,7 @@ class App:
                 rect_h = (2*(building_being_placed.radius) +1)*16
                 pyxel.rectb(rect_x, rect_y, rect_w, rect_h, 7)
         if pyxel.btn(pyxel.KEY_CTRL):
-            if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
+            if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit and self.placer_manager.selected_object.player_faction:
                 if (self.building_manager.try_to_move(tile_x, tile_y)):
                     (sprite_u, sprite_v) = (80,16)
                 elif(self.building_manager.try_attack(tile_x, tile_y ,self.placer_manager.selected_object)):
@@ -182,7 +182,7 @@ class App:
             self.placer_manager.reset()
         elif pyxel.btn(pyxel.KEY_CTRL):
             # try to move unit
-            if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit:
+            if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit and self.placer_manager.selected_object.player_faction:
                 # Try to move
                 if (self.building_manager.try_to_move(tile_x, tile_y)):
                     self.building_manager.set_move_destination(tile_x,tile_y,self.placer_manager.selected_object, from_main=True)
@@ -226,5 +226,17 @@ class App:
             draw_x = TILE_WIDTH*tile_x
             draw_y = TILE_HEIGHT*tile_y
             pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT,0)
+            
+            
+            # Draw enemy mark!
+            if not building.is_moving_unit:
+                return
+            if building.player_faction:
+                if ((pyxel.frame_count+15) % 90 > 75):
+                    pyxel.rectb(draw_x, draw_y, TILE_WIDTH, TILE_HEIGHT, 7)
+            if not building.player_faction:
+                if (pyxel.frame_count % 90 > 75):
+                    pyxel.rectb(draw_x, draw_y, TILE_WIDTH, TILE_HEIGHT, 8)
+            
 
 App()

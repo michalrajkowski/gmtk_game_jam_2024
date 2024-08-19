@@ -224,3 +224,26 @@ class Wolf(MovingUnit):
     def on_death(self):
         return super().on_death()
         # drop meat and leather
+
+class Wolf_Tamed(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Tamed Wolf"
+        self.description = "CTRL+Left Mouse to move\n- attacks back when attacked"
+        self.sprite_coords = (96,64)
+        self.max_hp = 5
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = True
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
+        return super().on_death()

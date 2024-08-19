@@ -1,7 +1,7 @@
 from buildings import Building
 from typing import Dict, Tuple
 from tile_manager import TileManager, TileIndex
-from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf
+from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf, Wolf_Tamed
 from resource_manager import ResourceManager
 import pyxel
 from collections import deque
@@ -21,6 +21,7 @@ class BuildingManager:
         # Initialize structures
         self.build_building(King(6,6), 6,6)
         self.build_building(Wolf(10,10), 10,10)
+        self.build_building(Wolf_Tamed(1,1), 1,1)
 
         #self.building_dict[(6,6)].focused_enemy = self.building_dict[(10,10)]
         self.possible_buildings = [
