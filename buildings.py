@@ -27,7 +27,13 @@ class Building:
         
         self.max_hp = 1
         self.current_hp = self.max_hp
-        self.exists = True
+        self.damage_reduction = 0
+
+        self.attack_damage = 1
+        self.attack_range = 1
+        self.can_attack = True
+        self.attack_cooldown_max = 1.0
+        self.attack_cooldown_current = self.attack_cooldown_max 
 
         self.max_cooldown = 1.0
         self.current_cooldown = self.max_cooldown
@@ -39,7 +45,7 @@ class Building:
 
     def simulate_building(self):
         self.current_cooldown -= float(1/30)
-        print(self.building_manager)
+        self.attack_cooldown_current -= float(1/30)
         if self.focused_enemy!= None:
             # check if exists
             if not self.building_manager.check_if_exists(self.focused_enemy):
@@ -47,7 +53,39 @@ class Building:
         if (self.current_cooldown <= 0.0):
             self.current_cooldown = self.max_cooldown
             self.do_building_action()
+        if (self.attack_cooldown_current <= 0.0):
+            self.attack_cooldown_current = self.attack_cooldown_max
+            self.try_to_attack()
 
+    def try_to_attack(self):
+        if self.focused_enemy == None:
+            # choose enemy
+            self.choose_enemy()
+        if self.focused_enemy == None:
+            return
+        
+        # Check if is in range
+        if (abs(self.focused_enemy.x - self.x) > self.attack_range or abs(self.focused_enemy.y - self.y) > self.attack_range):
+            return
+        
+        # Attack the enemy
+        self.focused_enemy.take_damage(self.attack_damage, self)
+
+    def choose_enemy(self):
+        pass
+
+    def take_damage(self,incoming_damage, attacking_unit=None):
+        real_damage = max(incoming_damage - self.damage_reduction,0)
+        self.current_hp -= real_damage
+        self.particle_manager.add_particle(f"{-1*real_damage} Hp", (self.x, self.y), color_number=2)
+        
+        if (self.current_hp <= 0):
+            self.on_death()
+            self.building_manager.delete_building(self)
+
+    def on_death(self):
+        print(f"{self.name} died!")
+        pass
     def do_building_action(self):
         pass 
 
@@ -104,11 +142,13 @@ class Fishermans(Building):
             ResourcesIndex.WOOD: 3
         }
         self.can_be_placed_on = [TileIndex.RIVER]
-        self.max_cooldown = 5.0
+        self.max_hp = 5
+        self.current_hp = 5
+        self.max_cooldown = 1.0
         self.current_cooldown = self.max_cooldown
 
     def do_building_action(self):
-        self.building_manager.delete_building(self)
+        self.take_damage(1)
 
 
 class Tower(Building):
@@ -141,8 +181,6 @@ class MovingUnit(Building):
             self.speed_cooldown = self.speed
             self.move_me=True
 
-
-
 class King(MovingUnit):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)
@@ -156,3 +194,33 @@ class King(MovingUnit):
 
     def simulate_building(self):
         super().simulate_building()
+
+    def on_death(self):
+        return super().on_death()
+        # TODO: lose game
+        print("\nYOU LOST THE GAME\n")
+
+    # Animals
+class Wolf(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Wolf"
+        self.description = "- meat and fur\n- neutral but will bite back!"
+        self.sprite_coords = (96,64)
+        self.max_hp = 5
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = False
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
+        return super().on_death()
+        # drop meat and leather

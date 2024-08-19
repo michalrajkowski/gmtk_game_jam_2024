@@ -1,7 +1,7 @@
 from buildings import Building
 from typing import Dict, Tuple
 from tile_manager import TileManager, TileIndex
-from buildings import House, Mine, Fishermans, Tower, MovingUnit, King
+from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf
 from resource_manager import ResourceManager
 import pyxel
 from collections import deque
@@ -20,6 +20,7 @@ class BuildingManager:
         }
         # Initialize structures
         self.build_building(King(6,6), 6,6)
+        self.build_building(Wolf(10,10), 10,10)
 
         #self.building_dict[(6,6)].focused_enemy = self.building_dict[(10,10)]
         self.possible_buildings = [
@@ -108,7 +109,7 @@ class BuildingManager:
         return True
     
     def try_attack(self, tile_x, tile_y, building : Building):
-        if (tile_y, tile_x) in self.building_dict: # and self.building_dict[(tile_y, tile_x)].player_faction != building.player_faction
+        if (tile_y, tile_x) in self.building_dict and self.building_dict[(tile_y, tile_x)].player_faction != building.player_faction:
             return True
         return False
     

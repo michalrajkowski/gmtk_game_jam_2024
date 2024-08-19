@@ -51,4 +51,5 @@ TODO: show increasement amount next to resources
 
 
 // Working on Focus mechanics
-- 
+- moving to focused enemy
+- dealing damage to focused enemy
