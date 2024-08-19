@@ -1,8 +1,12 @@
 import pyxel
+from buildings import Goblin, Tower
+from building_manager import BuildingManager
+import random
 
 class Event:
     def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False):
-        self.event_manager = EventManager()
+        self.event_manager = None
+        self.building_manager = None
         self.duration = duration
         self.max_duration = self.duration
         self.max_action_cooldown = max_action_cooldown
@@ -69,21 +73,42 @@ class Event_B(Event):
         self.event_art_path = "assets/goblin.jpg"
         self.name = "BBBB"
 
+class Goblin_Army(Event):
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.icon = (112,64)
+        self.duration = 20.0
+        self.max_duration = self.duration
+        self.max_action_cooldown = 1.0
+        self.action_cooldown = self.max_action_cooldown
+        self.event_art_path = "assets/goblin.jpg"
+        self.name = "Goblin Army"
+
+    def do_event_action(self):
+        # Spawn goblin
+        new_goblin = Goblin(0,0)
+        # Get spot where to spawn
+        x_array = list(range(12))
+        random.shuffle(x_array)
+        for x in x_array:
+            print(x)
+            if(self.building_manager.can_be_built(new_goblin,x, 0)):
+                self.building_manager.build_building(new_goblin,x,0)
+                print("goblin built")
+                return
+        # Spawn goblin
+
+
 class EventManager:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls, *args, **kwargs)
-        return cls._instance
-
     def __init__(self):
         self.event_list = []
-        pass
+        self.building_manager = None
     
-
     def add_event(self, event):
+        print(self.building_manager)
         self.event_list.append(event)
+        event.building_manager = self.building_manager
+        event.event_manager = self
     
     def simulate(self):
         for event in list(self.event_list):

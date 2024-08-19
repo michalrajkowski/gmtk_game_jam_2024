@@ -22,6 +22,8 @@ class Building:
         self.can_be_placed_on = [TileIndex.PLAINS]
         self.description = ""
 
+        self.first_iteration = True
+
         self.player_faction = True
         self.focused_enemy=None
         
@@ -38,12 +40,24 @@ class Building:
         self.max_cooldown = 1.0
         self.current_cooldown = self.max_cooldown
 
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+
         self.radius = 0
 
         self.is_moving_unit = False
         self.move_me = False
 
+    def randomize_cooldowns(self):
+        self.current_cooldown = random.uniform(0,self.max_cooldown)
+        self.speed_cooldown = random.uniform(0,self.speed)
+        self.attack_cooldown_current = random.uniform(0,self.attack_cooldown_max)
+
     def simulate_building(self):
+        if (self.first_iteration):
+            self.randomize_cooldowns()
+            self.first_iteration = False
+
         self.current_cooldown -= float(1/30)
         self.attack_cooldown_current -= float(1/30)
         if self.focused_enemy!= None:
@@ -261,7 +275,7 @@ class Goblin(MovingUnit):
         super().__init__(x, y)
         self.name = "Goblin"
         self.description = ""
-        self.sprite_coords = (96,64)
+        self.sprite_coords = (112,64)
         self.max_hp = 3
         self.current_hp = self.max_hp
         self.speed = 1.0
@@ -281,7 +295,7 @@ class Goblin(MovingUnit):
         # drop meat and leather
 
     def choose_enemy(self):
-        # Choose king as enemy!
+        self.focused_enemy = self.building_manager.get_king()
         pass
 
 class Wolf_Tamed(MovingUnit):

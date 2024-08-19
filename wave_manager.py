@@ -1,25 +1,19 @@
-from event_manager import Event, EventManager, Event_A, Event_B
+from event_manager import Event, EventManager, Event_A, Event_B,Goblin_Army
 import random
 import copy
 import pyxel
 
 possible_events_list = [
-    Event_A(), Event_B()
+    Event_A(), Event_B(), Goblin_Army()
 ]
 
 class WaveManager:
-    _instance = None
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls, *args, **kwargs)
-        return cls._instance
-
-    def __init__(self):
+    def __init__(self, event_manager):
         self.event_list = []
         self.generate_upfront_size = 5
         self.current_event = None
-        self.event_manager = EventManager()
+        self.event_manager = event_manager
         self.add_next_events(5)
         self.current_event = self.event_list[0]
         self.next_event_start()

@@ -2,7 +2,7 @@ import pyxel
 import random
 from building_manager import BuildingManager
 from choice_manager import ChoiceManager
-from buildings import Building
+from buildings import Building,Tower
 from resource_manager import ResourceManager, ResourcesIndex, resource_names, resource_sprites
 from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites
@@ -54,8 +54,11 @@ class App:
         self.descriptions_manager = DescriptionsManager(placer_manager=self.placer_manager,
                                                         tile_manager=self.tile_manager)
         self.particle_manager = ParticleManager()
+        
         self.event_manager = EventManager()
-        self.wave_manager = WaveManager()
+        self.event_manager.building_manager = self.building_manager
+
+        self.wave_manager = WaveManager(event_manager=self.event_manager)
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")
@@ -74,8 +77,7 @@ class App:
         self.building_manager.simulate()
         self.choice_manager.simulate()
         self.event_manager.simulate()
-        self.wave_manager.simulate()
-        
+        self.wave_manager.simulate()        
 
     def draw(self):
         pyxel.cls(0)

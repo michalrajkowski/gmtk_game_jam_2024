@@ -207,3 +207,9 @@ class BuildingManager:
                 if (y,x) in self.building_dict.keys():
                     nei_buildings[(y,x)]=self.building_dict[(y,x)]
         return nei_buildings
+    
+    def get_king(self):
+        for building in self.building_dict.values():
+            if isinstance(building, King):
+                return building
+        return None
