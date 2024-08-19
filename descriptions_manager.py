@@ -49,6 +49,10 @@ class DescriptionsManager:
                        208 + 3,
                        building.name,
                        7)
+            pyxel.text(0 + 3 + 16 + 2 + 80,
+                       208 + 3,
+                       f"Hp {building.current_hp}/{building.max_hp}",
+                       7)
             pyxel.text(0 + 3 + 16 + 4,
                        208 + 3+ 8,
                        building.description,

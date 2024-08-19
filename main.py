@@ -80,6 +80,8 @@ class App:
         self.draw_resources()
         self.choice_manager.draw_choice_pane()
         self.placer_manager.draw_selected()
+        self.draw_hp_bar()
+
         self.descriptions_manager.draw_selected_description()
         self.particle_manager.render_particles()
         # pyxel.blt(61, 66, 0, 0, 0, 38, 16)
@@ -229,14 +231,29 @@ class App:
             
             
             # Draw enemy mark!
-            if not building.is_moving_unit:
-                return
-            if building.player_faction:
-                if ((pyxel.frame_count+15) % 90 > 75):
-                    pyxel.rectb(draw_x, draw_y, TILE_WIDTH, TILE_HEIGHT, 7)
-            if not building.player_faction:
-                if (pyxel.frame_count % 90 > 75):
-                    pyxel.rectb(draw_x, draw_y, TILE_WIDTH, TILE_HEIGHT, 8)
+            if building.is_moving_unit:
+                if building.player_faction:
+                    if ((pyxel.frame_count+15) % 90 > 75):
+                        pyxel.rectb(draw_x, draw_y, TILE_WIDTH, TILE_HEIGHT, 7)
+                if not building.player_faction:
+                    if (pyxel.frame_count % 90 > 75):
+                        pyxel.rectb(draw_x, draw_y, TILE_WIDTH, TILE_HEIGHT, 8)
             
+    def draw_hp_bar(self):
+        for building in self.building_manager.building_dict.values():
+            building: Building = building
+            (tile_x, tile_y) = (building.x, building.y)
+            draw_x = TILE_WIDTH*tile_x
+            draw_y = TILE_HEIGHT*tile_y
+            
+            # Draw health bar
+            if building.current_hp < building.max_hp:
+                pyxel.rectb(draw_x, draw_y, TILE_WIDTH, 3, 0)
+                pyxel.rect(draw_x+1, draw_y+1, TILE_WIDTH-2, 1, 8)
+                hp_percentage = building.current_hp / building.max_hp
+                green_bar_width = int((TILE_WIDTH-2) * hp_percentage)
+
+                # Draw the green bar (foreground) - represents current HP
+                pyxel.rect(draw_x+1, draw_y+1, green_bar_width, 1, 3)
 
 App()

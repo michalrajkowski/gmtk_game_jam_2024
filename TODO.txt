@@ -9,47 +9,12 @@ Buildings:
 - require space to place them?
 - green - can be built
 - red - cant be built
-- building process (sprite is created pixel by pixel from ground)?
-
-Units:
-- sims
-- walk on the map and do tasks
-- the further they have to walk the least efficient the building is?
-
-
-TileMap:
-
-Building type:
-- gather stone?
-- gather wood?
-- gather food?
-- watchtower?
--
-
-
-Layers:
-- map Layers
-- units layer?
-- particle layer
-- building/UI layer?
+- building process (sprite is created pixel byayer?
 - text layer?
 
 
-Building manager:
-- buildings list / dict?
-- building objects
-- texture
-- mechanics?
-
-Units / sims:
-- spawned by building
-- simulated each frame
-- walking to their destination
-- carring back resources
 
 TODO: show increasement amount next to resources
 
 
-// Working on Focus mechanics
-- moving to focused enemy
-- dealing damage to focused enemy
+// Healthbars:
