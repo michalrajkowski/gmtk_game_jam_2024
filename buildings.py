@@ -162,6 +162,37 @@ class Tower(Building):
         }
 
         self.radius = 2
+        self.attack_range = 2
+        self.max_hp = 10
+        self.current_hp = self.max_hp
+
+    def choose_enemy(self):
+        # Choose random unit in range
+        nei_buildings = self.building_manager.get_neigbour_buildings(self.x, self.y, self.attack_range)
+        for building in nei_buildings.values():
+            building :Building = building
+            if building.player_faction != self.player_faction:
+                self.focused_enemy = building
+                return
+        self.focused_enemy=None
+
+    def try_to_attack(self):
+        if self.focused_enemy == None:
+            # choose enemy
+            self.choose_enemy()
+        if self.focused_enemy == None:
+            return
+        
+        # Check if is in range
+        if (abs(self.focused_enemy.x - self.x) > self.attack_range or abs(self.focused_enemy.y - self.y) > self.attack_range):
+            self.focused_enemy = None
+            self.choose_enemy()
+        
+        if self.focused_enemy == None:
+            return
+        
+        # Attack the enemy
+        self.focused_enemy.take_damage(self.attack_damage, self)
 
 
 class MovingUnit(Building):
@@ -224,6 +255,34 @@ class Wolf(MovingUnit):
     def on_death(self):
         return super().on_death()
         # drop meat and leather
+
+class Goblin(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Goblin"
+        self.description = ""
+        self.sprite_coords = (96,64)
+        self.max_hp = 3
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = False
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
+        return super().on_death()
+        # drop meat and leather
+
+    def choose_enemy(self):
+        # Choose king as enemy!
+        pass
 
 class Wolf_Tamed(MovingUnit):
     def __init__(self, x=0, y=0):

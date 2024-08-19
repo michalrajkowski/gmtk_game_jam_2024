@@ -199,3 +199,11 @@ class BuildingManager:
             if self.check_resources_for_this_building(building):
                 possible_to_build.append(building)
         return possible_to_build
+    
+    def get_neigbour_buildings(self, point_x,point_y,radius):
+        nei_buildings={}
+        for y in range(point_y - radius, point_y+radius+1):
+            for x in range(point_x - radius, point_x + radius+1):
+                if (y,x) in self.building_dict.keys():
+                    nei_buildings[(y,x)]=self.building_dict[(y,x)]
+        return nei_buildings
