@@ -9,6 +9,8 @@ from tile_manager import TileManager, TileIndex, tile_sprites
 from descriptions_manager import DescriptionsManager
 from buildings import Building
 from particles_manager import ParticleManager
+from event_manager import EventManager, Event
+from wave_manager import WaveManager
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -52,6 +54,8 @@ class App:
         self.descriptions_manager = DescriptionsManager(placer_manager=self.placer_manager,
                                                         tile_manager=self.tile_manager)
         self.particle_manager = ParticleManager()
+        self.event_manager = EventManager()
+        self.wave_manager = WaveManager()
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")
@@ -69,6 +73,8 @@ class App:
 
         self.building_manager.simulate()
         self.choice_manager.simulate()
+        self.event_manager.simulate()
+        self.wave_manager.simulate()
         
 
     def draw(self):
@@ -78,11 +84,13 @@ class App:
         self.draw_buildings()
         self.mouse_hover_tile_select()
         self.draw_resources()
+        self.wave_manager.draw()
         self.choice_manager.draw_choice_pane()
         self.placer_manager.draw_selected()
         self.draw_hp_bar()
 
         self.descriptions_manager.draw_selected_description()
+        self.event_manager.draw_events()
         self.particle_manager.render_particles()
         # pyxel.blt(61, 66, 0, 0, 0, 38, 16)
 
