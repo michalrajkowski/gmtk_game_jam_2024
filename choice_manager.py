@@ -75,12 +75,14 @@ class ChoiceManager:
         self.TILE_HEIGHT = TILE_HEIGHT
 
         self.choice_bar_size = CHOICE_BAR_SIZE
-        self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
+        self.choice_bar = None
         self.cooldown = 0.99
         self.max_cooldown = 0.99
         self.choice_queue = []
         self.max_choice_queue = 4
         self.extra_choices = []
+        self.press_max_cooldown = 0.5
+        self.press_current_cooldown = 0.0
     
     def draw_choice_pane(self):
         for i in range(self.choice_bar_size):
@@ -97,7 +99,12 @@ class ChoiceManager:
 
             # draw correct choice resource
             # choose this choice sprite:
-            this_choice : Choice = self.choice_bar[i]
+            this_choice = None
+            if self.choice_bar == None:
+                temp_choicebar = [NullChoice() for _ in range(self.choice_bar_size)]
+                this_choice = temp_choicebar[i]
+            else:
+                this_choice : Choice = self.choice_bar[i]
             (tile_u, tile_v) = (this_choice.sprite_coords[0], this_choice.sprite_coords[1])
             pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, self.TILE_WIDTH, self.TILE_HEIGHT,0)
 
@@ -133,6 +140,12 @@ class ChoiceManager:
             pyxel.text(choice_draw_x+2, choice_draw_y+5, f"{spare_choices_number_str}/{self.max_choice_queue}",7)
 
     def handle_click(self, clicked_index):
+        if self.press_current_cooldown >= 0.0:
+            # play sound?
+            return
+        if self.choice_bar == None:
+            return
+        
         this_choice : Choice = self.choice_bar[clicked_index]
         if this_choice.is_event_choice:
             this_choice: EventChoice = this_choice
@@ -142,7 +155,8 @@ class ChoiceManager:
             self.event_manager.add_event(this_choice.event)
 
             self.choice_queue.remove(self.choice_bar)
-            self.get_choicebar_from_queue()
+            self.choice_bar = None
+            self.try_get_choicebar_from_queue()
         elif this_choice.is_building_choice:
             # decrement resources
             this_choice: BuildingChoice = this_choice
@@ -155,7 +169,8 @@ class ChoiceManager:
 
             # clear choice bar
             self.choice_queue.remove(self.choice_bar)
-            self.get_choicebar_from_queue()
+            self.choice_bar = None
+            self.try_get_choicebar_from_queue()
             return
         elif this_choice.is_resource_choice:
             # increment resource 
@@ -165,11 +180,14 @@ class ChoiceManager:
             
             # clear choice bar
             self.choice_queue.remove(self.choice_bar)
-            self.get_choicebar_from_queue()
+            self.choice_bar = None
+            self.try_get_choicebar_from_queue()
         else:
             # null choice
             return
     def hover_over_choice(self, hover_index):
+        if self.choice_bar == None:
+            return
         this_choice : Choice = self.choice_bar[hover_index]
         if this_choice.is_building_choice:
             # decrement resources
@@ -182,23 +200,44 @@ class ChoiceManager:
             this_choice_event = this_choice.event
             self.placer_manager.choice_hover_event = this_choice_event
             
-
-
     def simulate(self):
         self.cooldown -= float(1/30)
+        self.press_current_cooldown -= float(1/30)
         if self.cooldown <= 0:
             self.cooldown = self.max_cooldown
             if len(self.choice_queue) < self.max_choice_queue:
-                self.generate_choices()
-        self.get_choicebar_from_queue()
-    def get_choicebar_from_queue(self):
+                self.choice_queue.append(None)
+        if self.choice_bar == None:
+            self.try_get_choicebar_from_queue()
+    
+    def try_get_choicebar_from_queue(self):
         if len(self.choice_queue) != 0:
-            self.choice_bar = self.choice_queue[0]
-        else:
-            self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
+            # Get event!!!
+            new_choice_bar = self.choice_queue[0]
+            if new_choice_bar == None:
+                new_choice_bar = self.generate_choices()
+                self.choice_queue.pop(0)
+                self.choice_queue.insert(0, new_choice_bar)
+            self.choice_bar = new_choice_bar
+            # Epic animations depending on rarity?
+
+            self.press_current_cooldown = self.press_max_cooldown
+        # else:
+        #    self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
 
     def generate_choices(self):
         # find what buildings can be built
+
+        # Basic event,
+        # Rare event,
+        # Legendary event,
+        
+        # Basic event:
+        # - generate event rarity
+        # - find what can be built
+        # - 
+
+
         possible_to_build = self.building_manager.buildings_possible_to_build()
         temp_choice_bar = []
         for i in range(self.choice_bar_size):
@@ -216,4 +255,4 @@ class ChoiceManager:
                 temp_choice_bar.append(choice)
         
         temp_choice_bar = copy.deepcopy(events_bars[1])
-        self.choice_queue.append(temp_choice_bar)
+        return temp_choice_bar
