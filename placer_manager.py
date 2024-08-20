@@ -15,6 +15,7 @@ class PlacerManager:
         self.selected_object = None
         
         self.choice_hover = None
+        self.choice_hover_event = None
         self.cancel_hover = False
 
     def reset(self):

@@ -6,6 +6,7 @@ from resource_manager import ResourceManager,ResourcesIndex, resource_sprites
 from buildings import Building, House
 from placer_manager import PlacerManager
 from building_manager import BuildingManager
+from event_manager import Event, EventManager, Goblin_Army, Resource_Event
 import copy
 # stores current choices
 # choices has id and types
@@ -17,6 +18,7 @@ class Choice:
         self.sprite_coords = (0, 64)
         self.is_resource_choice = False
         self.is_building_choice = False
+        self.is_event_choice = False
 
 class NullChoice(Choice):
     def __init__(self) -> None:
@@ -40,12 +42,32 @@ class BuildingChoice(Choice):
         self.building:Building = building
         self.sprite_coords = building.sprite_coords
 
+class EventChoice(Choice):
+    def __init__(self, event:Event) -> None:
+        super().__init__()
+        self.is_event_choice = True
+        self.event = event
+        self.sprite_coords = event.icon
+
+events = [
+
+]
+
+events_bars = [
+    [EventChoice(Goblin_Army()), EventChoice(Goblin_Army()), EventChoice(Goblin_Army()), EventChoice(Goblin_Army())],
+    [EventChoice(Resource_Event(resource_index=ResourcesIndex.WOOD, resource_amount=1)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.STONE, resource_amount=1)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.FOOD, resource_amount=1)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.IRON, resource_amount=1)),]
+]
+
 class ChoiceManager:
     def __init__(self, CHOICE_BAR_SIZE,CHOICE_PANE_BASE_X,CHOICE_PANE_BASE_Y,TILE_WIDTH,TILE_HEIGHT,resource_manager:ResourceManager,
                  placer_manager:PlacerManager,
                  building_manager:BuildingManager) -> None:
         self.building_manager = building_manager
         self.resource_manager=resource_manager
+        self.event_manager=None
         self.placer_manager = placer_manager
         self.CHOICE_PANE_BASE_X = CHOICE_PANE_BASE_X
         self.CHOICE_PANE_BASE_Y = CHOICE_PANE_BASE_Y
@@ -112,7 +134,16 @@ class ChoiceManager:
 
     def handle_click(self, clicked_index):
         this_choice : Choice = self.choice_bar[clicked_index]
-        if this_choice.is_building_choice:
+        if this_choice.is_event_choice:
+            this_choice: EventChoice = this_choice
+
+            # add event to queue
+            self.event_manager : EventManager = self.event_manager
+            self.event_manager.add_event(this_choice.event)
+
+            self.choice_queue.remove(self.choice_bar)
+            self.get_choicebar_from_queue()
+        elif this_choice.is_building_choice:
             # decrement resources
             this_choice: BuildingChoice = this_choice
     
@@ -145,6 +176,11 @@ class ChoiceManager:
             this_choice: BuildingChoice = this_choice
             this_choice_building = this_choice.building
             self.placer_manager.choice_hover = this_choice_building
+        if this_choice.is_event_choice:
+            # decrement resources
+            this_choice: Event = this_choice
+            this_choice_event = this_choice.event
+            self.placer_manager.choice_hover_event = this_choice_event
             
 
 
@@ -166,6 +202,7 @@ class ChoiceManager:
         possible_to_build = self.building_manager.buildings_possible_to_build()
         temp_choice_bar = []
         for i in range(self.choice_bar_size):
+
             building_choice = random.randint(0, len(possible_to_build)+4)
             if (building_choice< len(possible_to_build)):
                 choosen_building = copy.deepcopy(possible_to_build[building_choice])
@@ -177,4 +214,6 @@ class ChoiceManager:
                 resource_type = random.choice(list(ResourcesIndex)).value
                 choice = ResourceChoice(resource_type=resource_type)
                 temp_choice_bar.append(choice)
+        
+        temp_choice_bar = copy.deepcopy(events_bars[1])
         self.choice_queue.append(temp_choice_bar)

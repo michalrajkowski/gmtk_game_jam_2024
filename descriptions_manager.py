@@ -1,6 +1,7 @@
 from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites, tile_names, tile_descriptions
 from buildings import Building
+from event_manager import Event
 import pyxel
 # Render descriptions for choices and other ui thingies. It should probably be white frame with black inside + text?
 class DescriptionsManager:
@@ -23,6 +24,20 @@ class DescriptionsManager:
             pyxel.text(0 + 3 + 16 + 4,
                        208 + 3+ 8,
                        "- shows left choices in queue\n- when building: cancels building",
+                       7)
+        elif self.placer_manager.choice_hover_event!= None:
+            event :Event= self.placer_manager.choice_hover_event
+            event_sprite = event.icon
+            pyxel.blt(0 + 3,
+                       208 + 3,
+                       0, event_sprite[0], event_sprite[1],16, 16)
+            pyxel.text(0 + 3 + 16 + 2,
+                       208 + 3,
+                       event.name,
+                       7)
+            pyxel.text(0 + 3 + 16 + 4,
+                       208 + 3+ 8,
+                       event.description,
                        7)
         elif self.placer_manager.choice_hover!= None:
             building :Building= self.placer_manager.choice_hover

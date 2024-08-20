@@ -67,11 +67,18 @@ class ResourceManager:
         # for all resources the amount is 0
         self.resource_amount = {resource: 5 for resource in ResourcesIndex}
         self.max_amount = {resource: 10 for resource in ResourcesIndex}
+        self.is_resource_unlocked = {resource: False for resource in ResourcesIndex}
+        self.is_resource_unlocked[ResourcesIndex.WOOD] = True
+        self.is_resource_unlocked[ResourcesIndex.FOOD] = True
+        self.is_resource_unlocked[ResourcesIndex.STONE] = True
 
     def increment_resource(self, resource: ResourcesIndex, value: int) -> None:
         if resource not in self.resource_amount:
             raise ValueError(f"Resource {resource} is not valid.")
         
+        if self.is_resource_unlocked[resource] == False:
+            self.is_resource_unlocked[resource] = True
+
         new_amount = self.resource_amount[resource] + value
         
         if new_amount > self.max_amount[resource]:

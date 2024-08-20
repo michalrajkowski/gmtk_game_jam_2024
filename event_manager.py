@@ -2,11 +2,13 @@ import pyxel
 from buildings import Goblin, Tower
 from building_manager import BuildingManager
 import random
+from resource_manager import ResourcesIndex, resource_names, resource_sprites
 
 class Event:
     def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False):
         self.event_manager = None
         self.building_manager = None
+        self.resource_manager = None
         self.duration = duration
         self.max_duration = self.duration
         self.max_action_cooldown = max_action_cooldown
@@ -17,9 +19,8 @@ class Event:
         self.draw_event = draw_event
         self.event_art_path = "assets/elk.jpeg"
         self.name = "MISSING!"
-
-
-        self.on_start()
+        self.description = ""
+        self.first_tick = True
 
     
     def placing_condition(self):
@@ -32,6 +33,10 @@ class Event:
         pass
 
     def simulate(self):
+        if self.first_tick:
+            self.first_tick = False
+            self.on_start()
+        
         self.action_cooldown -= float(1/30)
         self.duration -= float(1/30)
         if (self.duration <= 0.0):
@@ -73,6 +78,23 @@ class Event_B(Event):
         self.event_art_path = "assets/goblin.jpg"
         self.name = "BBBB"
 
+class Resource_Event(Event):
+    def __init__(self, resource_index:ResourcesIndex, resource_amount=1,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.resource_index = resource_index
+        self.resource_amount = resource_amount
+        self.icon = resource_sprites[resource_index]
+        self.duration = 3.0
+        self.max_duration = self.duration
+        self.event_art_path = "assets/goblin.jpg"
+        self.description = f"- Increase {resource_names[resource_index]} by {self.resource_amount}"
+        self.name = f"Resource {resource_names[resource_index]} +{self.resource_amount}"
+
+    def on_start(self):
+        # Add resource
+        self.resource_manager.increment_resource(self.resource_index, self.resource_amount)
+
+
 class Goblin_Army(Event):
     def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
         super().__init__(x, y, duration, max_action_cooldown, draw_event)
@@ -103,11 +125,13 @@ class EventManager:
     def __init__(self):
         self.event_list = []
         self.building_manager = None
+        self.resource_manager = None
     
     def add_event(self, event):
         print(self.building_manager)
         self.event_list.append(event)
         event.building_manager = self.building_manager
+        event.resource_manager = self.resource_manager
         event.event_manager = self
     
     def simulate(self):

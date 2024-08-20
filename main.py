@@ -47,7 +47,6 @@ class App:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Pyxel Bubbles", capture_scale=1)
         pyxel.mouse(True)
 
-
         self.game_manager = GameManager()
         self.game_reset()
 
@@ -202,8 +201,12 @@ class App:
         
         self.event_manager = EventManager()
         self.event_manager.building_manager = self.building_manager
+        self.event_manager.resource_manager = self.resource_manager
 
         self.wave_manager = WaveManager(event_manager=self.event_manager)
+
+        # Aditional requirements
+        self.choice_manager.event_manager = self.event_manager
 
     def draw_tile_map(self):
         # draw all tiles 
@@ -234,6 +237,7 @@ class App:
             self.choice_manager.hover_over_choice(hovered_index)
             return 
         self.placer_manager.choice_hover = None
+        self.placer_manager.choice_hover_event = None
 
         # cancel button handling:
         if (pyxel.mouse_y >= CHOICE_PANE_BASE_Y and pyxel.mouse_y < CHOICE_PANE_BASE_Y+16 and 
@@ -318,6 +322,8 @@ class App:
     def draw_resources(self):
         iteration_index = 0
         for resource in ResourcesIndex:
+            if not self.resource_manager.is_resource_unlocked[resource]:
+                continue
             resource_name = resource_names[resource]
             resource_amount = str(self.resource_manager.resource_amount[resource])
             resource_max = str(self.resource_manager.max_amount[resource])
