@@ -1,6 +1,7 @@
 from resource_manager import ResourceManager,ResourcesIndex, resource_sprites, resources_from_tiles, resource_names
 from tile_manager import TileIndex, TileManager
 from particles_manager import ParticleManager
+from game_manager import GameManager, GameState
 import random
 # jakie cechy powinien mieć base building
 # - pozycja
@@ -9,6 +10,7 @@ import random
 
 class Building:
     def __init__(self, x=0, y=0):
+        self.game_manager: GameManager = GameManager()
         self.resource_manager: ResourceManager = None
         self.tile_manager: TileManager = None
         self.particle_manager = ParticleManager()
@@ -241,9 +243,9 @@ class King(MovingUnit):
         super().simulate_building()
 
     def on_death(self):
-        return super().on_death()
+        super().on_death()
         # TODO: lose game
-        print("\nYOU LOST THE GAME\n")
+        self.game_manager.game_state = GameState.LOSE_SCREEN
 
     # Animals
 class Wolf(MovingUnit):

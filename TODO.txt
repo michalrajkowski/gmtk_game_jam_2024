@@ -17,4 +17,4 @@ Buildings:
 TODO: show increasement amount next to resources
 
 
-// Healthbars:
+RESET GAME + MENU

@@ -4,7 +4,9 @@ import copy
 import pyxel
 
 possible_events_list = [
-    Event_A(), Event_B(), Goblin_Army()
+    # Event_A(), 
+    # Event_B(), 
+    Goblin_Army()
 ]
 
 class WaveManager:

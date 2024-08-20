@@ -11,6 +11,7 @@ from buildings import Building
 from particles_manager import ParticleManager
 from event_manager import EventManager, Event
 from wave_manager import WaveManager
+from game_manager import GameManager, GameState
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -28,6 +29,12 @@ CHOICE_PANE_BASE_Y = 192
 
 CHOICE_BAR_SIZE = 4
 
+PLAY_BUTTON = (78,50,100,40)
+QUIT_BUTTON = (78, 100, 100, 40)
+
+PLAY_AGAIN_BUTTON = (78,50,100,40)
+GO_TO_MENU_BUTTON = (78, 100, 100, 40)
+
 class TileMap:
     def __init__(self):
         pass
@@ -38,6 +45,106 @@ class App:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Pyxel Bubbles", capture_scale=1)
         pyxel.mouse(True)
 
+
+        self.game_manager = GameManager()
+        self.game_reset()
+
+        # load tilemap images:
+        pyxel.load("tiles.pyxres")
+
+        # pyxel.images[0].load(0, 0, "assets/pyxel_logo_38x16.png")
+        pyxel.run(self.update, self.draw)
+
+    def update(self):
+
+        if pyxel.btnp(pyxel.KEY_Q):
+            pyxel.quit()
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            self.mouse_click_interaction()
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_RIGHT):
+            self.placer_manager.reset()
+
+        if(self.game_manager.game_state == GameState.MENU):
+            self.simulate_menu()
+        if(self.game_manager.game_state == GameState.LOSE_SCREEN):
+            self.simulate_lose()
+        if (self.game_manager.game_state == GameState.GAME):
+            self.building_manager.simulate()
+            self.choice_manager.simulate()
+            self.event_manager.simulate()
+            self.wave_manager.simulate()        
+
+    def draw(self):
+        pyxel.cls(0)
+        
+        if self.game_manager.game_state == GameState.MENU:
+            self.draw_menu()
+        if self.game_manager.game_state == GameState.GAME or self.game_manager.game_state == GameState.LOSE_SCREEN:
+            self.draw_game()
+        if self.game_manager.game_state == GameState.LOSE_SCREEN:
+            self.draw_lose_screen()
+
+    def draw_menu(self):
+        # Draw menu?
+        # draw play button
+        pyxel.rect(PLAY_BUTTON[0],PLAY_BUTTON[1],PLAY_BUTTON[2],PLAY_BUTTON[3], 7)
+        # draw quit button
+        pyxel.rect(QUIT_BUTTON[0],QUIT_BUTTON[1],QUIT_BUTTON[2],QUIT_BUTTON[3], 7)
+        pass
+    def draw_lose_screen(self):
+        # draw play button
+        pyxel.rect(PLAY_AGAIN_BUTTON[0],PLAY_AGAIN_BUTTON[1],PLAY_AGAIN_BUTTON[2],PLAY_AGAIN_BUTTON[3], 7)
+        # draw quit button
+        pyxel.rect(GO_TO_MENU_BUTTON[0],GO_TO_MENU_BUTTON[1],GO_TO_MENU_BUTTON[2],GO_TO_MENU_BUTTON[3], 7)
+        pass
+    
+    def is_in_rect(self,o_x, o_y ,x, y, w, h):
+        if (x<=o_x<=x+w and y<=o_y<=y+h):
+            return True
+        return False
+    def is_in_button(self, button, o_x, o_y):
+        (x,y,w,h) = (button[0],button[1],button[2],button[3])
+        return self.is_in_rect(o_x, o_y ,x, y, w, h)
+    def simulate_menu(self):
+        if not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            return
+        (mouse_x, mouse_y) = (pyxel.mouse_x,pyxel.mouse_y)
+
+        if (self.is_in_button(PLAY_BUTTON,mouse_x, mouse_y)):
+            self.game_reset()
+            self.game_manager.game_state = GameState.GAME
+
+        if (self.is_in_button(QUIT_BUTTON,mouse_x, mouse_y)):
+            pyxel.quit() 
+
+
+    def simulate_lose(self):
+        if not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            return
+        (mouse_x, mouse_y) = (pyxel.mouse_x,pyxel.mouse_y)
+
+        if (self.is_in_button(PLAY_AGAIN_BUTTON,mouse_x, mouse_y)):
+            self.game_reset()
+            self.game_manager.game_state = GameState.GAME
+
+        if (self.is_in_button(GO_TO_MENU_BUTTON,mouse_x, mouse_y)):
+            self.game_manager.game_state = GameState.MENU 
+        
+    def draw_game(self):
+        self.draw_tile_map()
+        self.draw_buildings()
+        self.mouse_hover_tile_select()
+        self.draw_resources()
+        self.wave_manager.draw()
+        self.choice_manager.draw_choice_pane()
+        self.placer_manager.draw_selected()
+        self.draw_hp_bar()
+
+        self.descriptions_manager.draw_selected_description()
+        self.event_manager.draw_events()
+        self.particle_manager.render_particles()
+        
+    def game_reset(self):
         # generate all managers
         self.resource_manager = ResourceManager()
         self.tile_manager = TileManager(TILE_MAP_WIDTH=TILE_MAP_WIDTH, TILE_MAP_HEIGHT=TILE_MAP_HEIGHT)
@@ -59,42 +166,6 @@ class App:
         self.event_manager.building_manager = self.building_manager
 
         self.wave_manager = WaveManager(event_manager=self.event_manager)
-
-        # load tilemap images:
-        pyxel.load("tiles.pyxres")
-
-        # pyxel.images[0].load(0, 0, "assets/pyxel_logo_38x16.png")
-        pyxel.run(self.update, self.draw)
-
-    def update(self):
-        if pyxel.btnp(pyxel.KEY_Q):
-            pyxel.quit()
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            self.mouse_click_interaction()
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_RIGHT):
-            self.placer_manager.reset()
-
-        self.building_manager.simulate()
-        self.choice_manager.simulate()
-        self.event_manager.simulate()
-        self.wave_manager.simulate()        
-
-    def draw(self):
-        pyxel.cls(0)
-        # pyxel.text(55, 41, "Hello, Pyxel!", pyxel.frame_count % 16)
-        self.draw_tile_map()
-        self.draw_buildings()
-        self.mouse_hover_tile_select()
-        self.draw_resources()
-        self.wave_manager.draw()
-        self.choice_manager.draw_choice_pane()
-        self.placer_manager.draw_selected()
-        self.draw_hp_bar()
-
-        self.descriptions_manager.draw_selected_description()
-        self.event_manager.draw_events()
-        self.particle_manager.render_particles()
-        # pyxel.blt(61, 66, 0, 0, 0, 38, 16)
 
     def draw_tile_map(self):
         # draw all tiles 
