@@ -29,13 +29,13 @@ CHOICE_PANE_BASE_Y = 192
 
 CHOICE_BAR_SIZE = 4
 
-PLAY_BUTTON = (78,50,16*4,16*2)
-QUIT_BUTTON = (78, 100, 16*4,16*2)
+PLAY_BUTTON = (16*6,16*4,16*4,16*2)
+QUIT_BUTTON = (16*6, 16*7, 16*4,16*2)
 
-PLAY_AGAIN_BUTTON = (78,50,16*4,16*2)
-GO_TO_MENU_BUTTON = (78, 100, 16*4,16*2)
+PLAY_AGAIN_BUTTON = (4*16,4*16,16*4,16*2)
+GO_TO_MENU_BUTTON = (4*16, 7*16, 16*4,16*2)
 
-RESUME_BUTTON = (78,50,16*4,16*2)
+RESUME_BUTTON = (4*16,4*16,16*4,16*2)
 
 class TileMap:
     def __init__(self):
@@ -105,6 +105,9 @@ class App:
     def draw_menu(self):
         # Draw menu?
         # draw play button
+        pyxel.images[1].load(0,0,"assets/MenuArt.png")
+        pyxel.blt(0,0,1,0,0,256,256)
+        
         pyxel.rect(PLAY_BUTTON[0],PLAY_BUTTON[1],PLAY_BUTTON[2],PLAY_BUTTON[3], 7)
         pyxel.blt(PLAY_BUTTON[0],PLAY_BUTTON[1],2,0,0,PLAY_BUTTON[2],PLAY_BUTTON[3])
         # draw quit button
@@ -180,6 +183,7 @@ class App:
         
     def game_reset(self):
         # generate all managers
+        
         self.resource_manager = ResourceManager()
         self.tile_manager = TileManager(TILE_MAP_WIDTH=TILE_MAP_WIDTH, TILE_MAP_HEIGHT=TILE_MAP_HEIGHT)
         self.building_manager = BuildingManager(tile_manager=self.tile_manager, resource_manager=self.resource_manager)
