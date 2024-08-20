@@ -99,8 +99,8 @@ class ChoiceManager:
 
         self.choice_bar_size = CHOICE_BAR_SIZE
         self.choice_bar = None
-        self.cooldown = 0.99
-        self.max_cooldown = 0.09
+        self.cooldown = 5.0
+        self.max_cooldown = 5.0
         self.choice_queue = []
         self.max_choice_queue = 4
         self.extra_choices = []
@@ -350,8 +350,13 @@ class ChoiceManager:
             if i == 0 or i > len(possible_to_build):
                 # gen resource:
                 # TODO chooses from all items, needs some filtrations maybe?
-                resource_type = random.choice(list(ResourcesIndex)).value
-                choice = ResourceChoice(resource_type=resource_type)
+                random_choice=random.random()
+                if random_choice > 0.66:
+                    choice = EventChoice(Resource_Event(resource_index=ResourcesIndex.FOOD, resource_amount=1))
+                elif random_choice > 0.33:
+                    choice = EventChoice(Resource_Event(resource_index=ResourcesIndex.STONE, resource_amount=1))
+                else:
+                    choice = EventChoice(Resource_Event(resource_index=ResourcesIndex.WOOD, resource_amount=1))
                 temp_choice_bar.append(choice)
 
             else:
@@ -361,7 +366,5 @@ class ChoiceManager:
                 new_building = choosen_building
                 choice = BuildingChoice(new_building)
                 temp_choice_bar.append(choice)
-        temp = temp_choice_bar[3]
-        temp_choice_bar[3] = temp_choice_bar[1]
-        temp_choice_bar[1] = temp
+        random.shuffle(temp_choice_bar)
         return temp_choice_bar

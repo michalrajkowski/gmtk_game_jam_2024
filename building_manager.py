@@ -1,7 +1,7 @@
 from buildings import Building
 from typing import Dict, Tuple
 from tile_manager import TileManager, TileIndex
-from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf, Wolf_Tamed, FreeBuilding
+from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf, Wolf_Tamed, Field, Lumberjack, Fisherman_Hut, Watchtower, Storage, Skeleton, Necromancer, Villager, Knight
 from resource_manager import ResourceManager
 import pyxel
 from collections import deque
@@ -21,14 +21,20 @@ class BuildingManager:
         # Initialize structures
         self.build_building(King(6,6), 6,6)
         self.build_building(Wolf(10,10), 10,10)
-        self.build_building(Wolf_Tamed(1,1), 1,1)
 
         #self.building_dict[(6,6)].focused_enemy = self.building_dict[(10,10)]
         self.possible_buildings = [
             House(),
             Mine(),
-            Fishermans(),
+            # Fishermans(),
             Tower(),
+            Field(),
+            Lumberjack(),
+            Fisherman_Hut(),
+            Watchtower(),
+            Storage(),
+            Villager(),
+            Knight(),
         ]
 
     def simulate(self):
@@ -83,6 +89,8 @@ class BuildingManager:
         building.tile_manager = self.tile_manager
         building.building_manager = self
 
+    
+
     def draw_selection_building(self, building: Building):
         (tile_x, tile_y) = (building.x, building.y)
         self.draw_selection(tile_x, tile_y, enemy_mark=False)
@@ -104,8 +112,11 @@ class BuildingManager:
         tile_draw_y = tile_y*16
         pyxel.blt(tile_draw_x, tile_draw_y, 0, select_u, select_v, 16, 16, 0)
 
-    def try_to_move(self, tile_x, tile_y):
+    def try_to_move(self, tile_x, tile_y, unit:Building=None):
         if self.is_occupied(tile_x, tile_y):
+            return False
+        tile_type = TileIndex.from_value(self.tile_manager.tile_map[tile_y][tile_x])
+        if tile_type== TileIndex.RIVER:
             return False
         return True
     
@@ -180,6 +191,8 @@ class BuildingManager:
         return self.building_dict[(tile_y, tile_x)]
 
     def can_be_built(self, building: Building, x,y):
+        if (x<0 or x > 11 or y < 0 or y > 11):
+            return False
         if (y,x) in self.building_dict:
             return False
         # TODO : check terrain?

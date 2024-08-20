@@ -5,7 +5,11 @@ class ResourcesIndex(Enum):
     WOOD = 1
     STONE = 2
     FOOD = 3
-    IRON = 4
+    LEATHER = 4
+    IRON = 5
+    GOLD = 6
+    MITHRIL = 7
+    
     #BLANK_1 = 5
     #BLANK_2 = 6
     #BLANK_3 = 7
@@ -34,7 +38,9 @@ resource_sprites = {
     ResourcesIndex.STONE: (0, 32),
     ResourcesIndex.FOOD: (32, 32),
     ResourcesIndex.IRON: (48, 32),
-    #ResourcesIndex.BLANK_1: (48, 32),
+    ResourcesIndex.LEATHER: (64, 32),
+    ResourcesIndex.GOLD: (80, 32),
+    ResourcesIndex.MITHRIL: (96, 32),
     #ResourcesIndex.BLANK_2: (48, 32),
     #ResourcesIndex.BLANK_3: (48, 32),
     #ResourcesIndex.BLANK_4: (48, 32),
@@ -50,6 +56,9 @@ resource_names = {
     ResourcesIndex.STONE: "stone",
     ResourcesIndex.FOOD: "food",
     ResourcesIndex.IRON: "iron",
+    ResourcesIndex.LEATHER: "leather",
+    ResourcesIndex.GOLD: "gold",
+    ResourcesIndex.MITHRIL: "mithril",
     #ResourcesIndex.BLANK_1: "blank_1",
     #ResourcesIndex.BLANK_2: "blank_2",
     #ResourcesIndex.BLANK_3: "blank_3",
@@ -87,3 +96,10 @@ class ResourceManager:
         self.resource_amount[resource] = new_amount
     def get_resource_amount(self, resource: ResourcesIndex):
         return self.resource_amount[resource]
+    
+    def change_max_resource(self, value, change_resource= None):
+        if change_resource == None:
+            for resource in ResourcesIndex:
+                self.max_amount[resource] += value
+        else:
+            self.max_amount[change_resource]+=value

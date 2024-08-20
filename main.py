@@ -328,7 +328,7 @@ class App:
             resource_amount = str(self.resource_manager.resource_amount[resource])
             resource_max = str(self.resource_manager.max_amount[resource])
             
-            resource_draw_x = RESOURCES_BASE_X + 1 + 18
+            resource_draw_x = RESOURCES_BASE_X + 1 + 14
             resource_draw_y = RESOURCE_BASE_Y + 16 * iteration_index
             
             pyxel.text(resource_draw_x, resource_draw_y+6, resource_name, 7)
@@ -337,7 +337,7 @@ class App:
             pyxel.text(resource_draw_x, resource_draw_y+6, f'{resource_amount}/{resource_max}', 7)
             
             sprite_x, sprite_y = resource_sprites[resource]
-            pyxel.blt(RESOURCES_BASE_X + 1, resource_draw_y, 0, sprite_x, sprite_y, TILE_WIDTH, TILE_HEIGHT, 0)
+            pyxel.blt(RESOURCES_BASE_X , resource_draw_y, 0, sprite_x, sprite_y, TILE_WIDTH, TILE_HEIGHT, 0)
             iteration_index+=1
 
     def draw_buildings(self):

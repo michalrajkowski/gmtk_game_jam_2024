@@ -7,6 +7,21 @@ import random
 # - pozycja
 # - sprite pos?
 # - cooldown/what it does?
+def get_weighted_result(weights, results):
+        cumulative_weights = []
+        current_sum = 0
+        for weight in weights:
+            current_sum += weight
+            cumulative_weights.append(current_sum)
+        
+        # Generate a random number between 0 and the sum of all weights
+        total_weight = cumulative_weights[-1]
+        random_num = random.uniform(0, total_weight)
+        
+        # Determine which choice corresponds to the random number
+        for i, cumulative_weight in enumerate(cumulative_weights):
+            if random_num <= cumulative_weight:
+                return results[i]
 
 class Building:
     def __init__(self, x=0, y=0):
@@ -50,18 +65,23 @@ class Building:
         self.is_moving_unit = False
         self.move_me = False
 
+        self.regenerate_hp_cooldown = 20.0
+        self.regenerate_hp_max = 20.0
+
     def randomize_cooldowns(self):
-        self.current_cooldown = random.uniform(0,self.max_cooldown)
+        self.current_cooldown =  self.max_cooldown - 1 + random.random()
         self.speed_cooldown = random.uniform(0,self.speed)
         self.attack_cooldown_current = random.uniform(0,self.attack_cooldown_max)
 
     def simulate_building(self):
         if (self.first_iteration):
+            self.on_build()
             self.randomize_cooldowns()
             self.first_iteration = False
 
         self.current_cooldown -= float(1/30)
         self.attack_cooldown_current -= float(1/30)
+        self.regenerate_hp_cooldown -= float(1/30)
         if self.focused_enemy!= None:
             # check if exists
             if not self.building_manager.check_if_exists(self.focused_enemy):
@@ -72,6 +92,19 @@ class Building:
         if (self.attack_cooldown_current <= 0.0):
             self.attack_cooldown_current = self.attack_cooldown_max
             self.try_to_attack()
+        if (self.regenerate_hp_cooldown <=0.0):
+            self.regenerate_hp_cooldown = self.regenerate_hp_max
+            self.heal()
+
+
+    def heal(self):
+        if self.player_faction == False:
+            return
+        
+        if self.current_hp <= self.max_hp:
+            self.current_hp+=1
+            self.particle_manager.add_particle(f"+1 Hp", (self.x, self.y), color_number=3)
+
 
     def try_to_attack(self):
         if self.focused_enemy == None:
@@ -99,6 +132,8 @@ class Building:
             self.on_death()
             self.building_manager.delete_building(self)
 
+    def on_build(self):
+        pass
     def on_death(self):
         print(f"{self.name} died!")
         pass
@@ -115,7 +150,7 @@ class House(Building):
             ResourcesIndex.WOOD: 1
         }
         self.radius = 1
-        self.max_cooldown = 1.0
+        self.max_cooldown = 20.0
         self.current_cooldown = self.max_cooldown
 
         self.description = "- gather resources from neighbour tiles"
@@ -131,6 +166,68 @@ class House(Building):
                 self.particle_manager.add_particle(f"+1{resource_names[resources_from_tiles[TileIndex.from_value(i)]]}", (self.x, self.y))
                 return
 
+class Field(Building):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Field"
+        self.sprite_coords = (160,64)
+        self.building_cost = {
+            ResourcesIndex.WOOD: 2
+        }
+        self.field_sprites = [(128,64), (144,64), (160,64)]
+        self.can_be_placed_on = [TileIndex.PLAINS]
+        self.radius = 0
+        self.max_cooldown = 20.0
+        self.current_cooldown = self.max_cooldown
+
+        self.description = "- produces food\n- food production takes a long time"
+
+    def simulate_building(self):
+        super().simulate_building()
+        # add sprite based on growth state
+        growth_state = float(self.current_cooldown / self.max_cooldown)
+        if growth_state > 0.66:
+            self.sprite_coords = self.field_sprites[0]
+        elif growth_state > 0.33:
+            self.sprite_coords = self.field_sprites[1]
+        else:
+            self.sprite_coords = self.field_sprites[2]
+        
+
+    def do_building_action(self):
+        # Gather 1 Stone
+        self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
+        self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
+
+class Lumberjack(Building):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Lumberjack Hut"
+        self.sprite_coords = (176,64)
+        self.building_cost = {
+            ResourcesIndex.WOOD: 5
+        }
+        self.radius = 1
+        self.max_cooldown = 10.0
+        self.current_cooldown = self.max_cooldown
+
+        self.description = "- collect wood from forests\n- forests number increase efficiency"
+
+    def do_building_action(self):
+        # Try to gather random resource from neibhour stuff
+        neighbour_fields = self.tile_manager.get_neigbour_tiles(self.x, self.y, self.radius)
+        random.shuffle(neighbour_fields)
+        # calculate all forests number
+        forests_number = 0
+        for i in neighbour_fields:
+            if TileIndex.from_value(i) in [TileIndex.FOREST]:
+                forests_number+=1
+        if forests_number > 0:
+            self.resource_manager.increment_resource(ResourcesIndex.WOOD, 1)
+            self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.WOOD]}", (self.x, self.y))
+        # Reduce cooldown based on forests number:
+        self.current_cooldown -= forests_number
+
 class Mine(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)
@@ -138,15 +235,112 @@ class Mine(Building):
         self.sprite_coords = (32,64)
         self.building_cost = {
             ResourcesIndex.STONE: 1,
-            ResourcesIndex.WOOD: 3
+            ResourcesIndex.WOOD: 3,
+            ResourcesIndex.LEATHER: 1,
         }
+        self.mithril_chance = 1
+        self.gold_chance = 10
+        self.stone_chance = 200
+        self.max_cooldown = 4.0
+        self.current_cooldown = self.max_cooldown
         self.can_be_placed_on = [TileIndex.MONTAIN]
+        self.description = "- collects stone\n- has small chance to mine valuables\n- can only be built on mountains"
 
     def do_building_action(self):
         # Gather 1 Stone
-        self.resource_manager.increment_resource(ResourcesIndex.STONE, 1)
-        self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.STONE]}", (self.x, self.y))
+        weigths = [self.stone_chance, self.gold_chance, self.mithril_chance]
+        results = [ResourcesIndex.STONE, ResourcesIndex.GOLD, ResourcesIndex.MITHRIL]
+        random_resource = get_weighted_result(weigths, results)
+        self.resource_manager.increment_resource(random_resource, 1)
+        self.particle_manager.add_particle(f"+1{resource_names[random_resource]}", (self.x, self.y))
+
+class Smelter(Building):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Smelter"
+        self.sprite_coords = (240,64)
+        self.building_cost = {
+            ResourcesIndex.STONE: 11,
+        }
+        self.mithril_chance = 1
+        self.gold_chance = 10
+        self.stone_chance = 200
+        self.max_cooldown = 10.0
+        self.current_cooldown = self.max_cooldown
+        self.can_be_placed_on = [TileIndex.PLAINS]
+        self.description = "- Produces Iron"
+
+    def do_building_action(self):
+        # Gather 1 Stone
+        self.resource_manager.increment_resource(ResourcesIndex.IRON, 1)
+        self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.IRON]}", (self.x, self.y))
+
+class Fisherman_Hut(Building):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Fisherman"
+        self.sprite_coords = (192,64)
+        self.building_cost = {
+            ResourcesIndex.WOOD: 4
+        }
+        self.radius = 1
+        self.max_cooldown = 10.0
+        self.current_cooldown = self.max_cooldown
+
+        self.food_chance = 200
+        self.gold_fish_chance = 1
+        self.treasure_chance = 1
+
+        self.description = "- gathers food from lakes\n- has small chance to fish goldfish or treasure\n- number of ponds increases his efficiency"
+
+    def do_building_action(self):
+        # Try to gather random resource from neibhour stuff
+        neighbour_fields = self.tile_manager.get_neigbour_tiles(self.x, self.y, self.radius)
+        random.shuffle(neighbour_fields)
+        # calculate all forests number
+        river_number = 0
+        for i in neighbour_fields:
+            if TileIndex.from_value(i) in [TileIndex.RIVER]:
+                river_number+=1
+        if river_number == 0:
+            return
         
+        weigths = [self.food_chance, self.gold_fish_chance+river_number, self.treasure_chance+river_number]
+        results = ["food", "goldfish", "treasure"]
+        random_result = get_weighted_result(weigths, results)
+        if random_result == "food":
+            self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
+            self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
+        elif random_result == "goldfish":
+            self.resource_manager.increment_resource(ResourcesIndex.GOLD, 1)
+            self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.GOLD]}", (self.x, self.y))
+        elif random_result == "treasure":
+            # get random resources?
+            random_amount = random.randint(0,5)
+            if random_amount > 0:
+                self.resource_manager.increment_resource(ResourcesIndex.WOOD, 1)
+                self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.WOOD]}", (self.x, self.y))
+            random_amount = random.randint(0,5)
+            if random_amount > 0:
+                self.resource_manager.increment_resource(ResourcesIndex.STONE, 1)
+                self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.STONE]}", (self.x, self.y))
+            random_amount = random.randint(0,3)
+            if random_amount > 0:
+                self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
+                self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
+            random_amount = random.randint(0,1)
+            if random_amount > 0:
+                self.resource_manager.increment_resource(ResourcesIndex.IRON, 1)
+                self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.IRON]}", (self.x, self.y))
+            random_amount = random.randint(0,1)
+            if random_amount > 0:
+                self.resource_manager.increment_resource(ResourcesIndex.LEATHER, 1)
+                self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.LEATHER]}", (self.x, self.y))
+        
+        # Reduce cooldown based on forests number:
+        self.current_cooldown -= river_number
+
+# class Hunter_camp(Building):
 
 class Fishermans(Building):
     def __init__(self, x=0, y=0):
@@ -166,6 +360,72 @@ class Fishermans(Building):
     def do_building_action(self):
         self.take_damage(1)
 
+class Storage(Building):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Storage"
+        self.sprite_coords = (224,64)
+        self.building_cost = {
+            ResourcesIndex.STONE: 5,
+            ResourcesIndex.WOOD: 5
+        }
+        self.max_hp = 20
+        self.current_hp = 20
+        self.max_cooldown = 1.0
+        self.current_cooldown = self.max_cooldown
+        self.description="- increases basic resource max by 5"
+
+    def on_death(self):
+        # increase basic resource number
+        self.resource_manager.change_max_resource(-5)
+
+    def on_build(self):
+        # decrease bascic resource cap
+        self.resource_manager.change_max_resource(5)
+
+class Watchtower(Building):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Watchtower"
+        self.sprite_coords = (208,64)
+        self.building_cost = {
+            ResourcesIndex.FOOD: 2,
+            ResourcesIndex.WOOD: 5
+        }
+
+        self.radius = 1
+        self.attack_range = 1
+        self.max_hp = 10
+        self.current_hp = self.max_hp
+        self.description = "- Attacks enemy units in range"
+    def choose_enemy(self):
+        # Choose random unit in range
+        nei_buildings = self.building_manager.get_neigbour_buildings(self.x, self.y, self.attack_range)
+        for building in nei_buildings.values():
+            building :Building = building
+            if building.player_faction != self.player_faction:
+                self.focused_enemy = building
+                return
+        self.focused_enemy=None
+
+    def try_to_attack(self):
+        if self.focused_enemy == None:
+            # choose enemy
+            self.choose_enemy()
+        if self.focused_enemy == None:
+            return
+        
+        # Check if is in range
+        if (abs(self.focused_enemy.x - self.x) > self.attack_range or abs(self.focused_enemy.y - self.y) > self.attack_range):
+            self.focused_enemy = None
+            self.choose_enemy()
+        
+        if self.focused_enemy == None:
+            return
+        
+        # Attack the enemy
+        self.focused_enemy.take_damage(self.attack_damage, self)
+
 
 class Tower(Building):
     def __init__(self, x=0, y=0):
@@ -173,14 +433,17 @@ class Tower(Building):
         self.name = "Tower"
         self.sprite_coords = (64,64)
         self.building_cost = {
-            ResourcesIndex.STONE: 5,
-            ResourcesIndex.WOOD: 2
+            ResourcesIndex.STONE: 6,
+            ResourcesIndex.WOOD: 3,
+            ResourcesIndex.FOOD: 3,
+
         }
 
         self.radius = 2
         self.attack_range = 2
-        self.max_hp = 10
+        self.max_hp = 20
         self.current_hp = self.max_hp
+        self.description = "- Attacks enemy units in range\n- Very durable"
 
     def choose_enemy(self):
         # Choose random unit in range
@@ -209,7 +472,7 @@ class Tower(Building):
         
         # Attack the enemy
         self.focused_enemy.take_damage(self.attack_damage, self)
-            
+
 class MovingUnit(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)
@@ -268,8 +531,106 @@ class Wolf(MovingUnit):
             self.focused_enemy = attacking_unit
 
     def on_death(self):
+        # drop meat and leather
+        random_chance = random.random()
+        if random_chance > 0.5:
+            self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
+            self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
+        else:
+            self.resource_manager.increment_resource(ResourcesIndex.LEATHER, 1)
+            self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.LEATHER]}", (self.x, self.y))
+
+class Skeleton(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Skeleton"
+        self.description = "- walks aimlessly and attack things in range"
+        self.sprite_coords = (64,80)
+        self.max_hp = 2
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = False
+
+        self.attack_range = 1
+
+        self.max_cooldown = 5.0
+        self.current_cooldown = self.max_cooldown
+
+    def do_building_action(self):
+        # generate random walk direction
+        random_walk_direction = (random.randint(0,11), random.randint(0,11))
+        self.moving_destination = random_walk_direction
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
         return super().on_death()
         # drop meat and leather
+
+    def choose_enemy(self):
+        # choose random thing in range
+        # Choose random unit in range
+        nei_buildings = self.building_manager.get_neigbour_buildings(self.x, self.y, self.attack_range)
+        for building in nei_buildings.values():
+            building :Building = building
+            if building.player_faction != self.player_faction:
+                self.focused_enemy = building
+                return
+        self.focused_enemy=None
+
+class Necromancer(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Necromancer"
+        self.description = "- Creates army of the undead"
+        self.sprite_coords = (48,80)
+        self.max_hp = 5
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = False
+
+        self.max_cooldown = 10.0
+        self.current_cooldown = self.max_cooldown
+        
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def do_building_action(self):
+        new_undead = Skeleton(0,0)
+        for x in range(self.x - 1, self.x+2):
+            for y in range(self.y - 1, self.y+2):
+                if(self.building_manager.can_be_built(new_undead,x, y)):
+                    self.building_manager.build_building(new_undead,x,y)
+                    return
+
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
+        return super().on_death()
+        # drop meat and leather
+
+    def choose_enemy(self):
+        # Choose random unit in range
+        nei_buildings = self.building_manager.get_neigbour_buildings(self.x, self.y, self.attack_range)
+        for building in nei_buildings.values():
+            building :Building = building
+            if building.player_faction != self.player_faction:
+                self.focused_enemy = building
+                return
+        self.focused_enemy=None
 
 class Goblin(MovingUnit):
     def __init__(self, x=0, y=0):
@@ -310,6 +671,59 @@ class Wolf_Tamed(MovingUnit):
         self.speed = 1.0
         self.speed_cooldown = self.speed
         self.player_faction = True
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
+        return super().on_death()
+
+class Villager(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Knight"
+        self.description = "- Moving unit"
+        self.sprite_coords = (80,80)
+        self.max_hp = 5
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = True
+        self.building_cost = {
+            ResourcesIndex.FOOD: 3
+        }
+
+    def simulate_building(self):
+        super().simulate_building()
+
+    def take_damage(self, incoming_damage, attacking_unit=None):
+        super().take_damage(incoming_damage, attacking_unit)
+        if attacking_unit != None:
+            self.focused_enemy = attacking_unit
+
+    def on_death(self):
+        return super().on_death()
+
+class Knight(MovingUnit):
+    def __init__(self, x=0, y=0):
+        super().__init__(x, y)
+        self.name = "Knight"
+        self.description = "- Moving unit"
+        self.sprite_coords = (96,80)
+        self.max_hp = 20
+        self.current_hp = self.max_hp
+        self.speed = 1.0
+        self.speed_cooldown = self.speed
+        self.player_faction = True
+        self.building_cost = {
+            ResourcesIndex.IRON: 2,
+            ResourcesIndex.FOOD: 5
+        }
 
     def simulate_building(self):
         super().simulate_building()

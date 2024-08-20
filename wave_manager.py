@@ -1,11 +1,13 @@
-from event_manager import Event, EventManager, Event_A, Event_B,Goblin_Army
+from event_manager import Event, EventManager, Event_A, Event_B,Goblin_Army, Undead_Army, Peacefull_Day
 import random
 import copy
 import pyxel
 
 possible_events_list = [
     # Event_A(), 
-     Event_B(), 
+     Undead_Army(), 
+     Goblin_Army(),
+     Peacefull_Day(),
     # Goblin_Army()
 ]
 
@@ -16,7 +18,11 @@ class WaveManager:
         self.generate_upfront_size = 5
         self.current_event = None
         self.event_manager = event_manager
-        self.add_next_events(5)
+        self.event_list.append(copy.deepcopy(Peacefull_Day()))
+        self.event_list.append(copy.deepcopy(Peacefull_Day()))
+        self.event_list.append(copy.deepcopy(Peacefull_Day()))
+        self.event_list.append(copy.deepcopy(Peacefull_Day()))
+        self.event_list.append(copy.deepcopy(Peacefull_Day()))
         self.current_event = self.event_list[0]
         self.next_event_start()
         self.image_art_loaded = False

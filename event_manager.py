@@ -1,5 +1,5 @@
 import pyxel
-from buildings import Goblin, Tower
+from buildings import Goblin, Tower, Necromancer
 from building_manager import BuildingManager
 import random
 from resource_manager import ResourcesIndex, resource_names, resource_sprites
@@ -115,10 +115,13 @@ class Goblin_Army(Event):
         self.max_duration = self.duration
         self.max_action_cooldown = 1.0
         self.action_cooldown = self.max_action_cooldown
+        self.goblin_army_spawn_duration = 15.0
         self.event_art_path = "assets/goblin.jpg"
         self.name = "Goblin Army"
 
     def do_event_action(self):
+        if self.duration <= self.goblin_army_spawn_duration:
+            return
         # Spawn goblin
         new_goblin = Goblin(0,0)
         # Get spot where to spawn
@@ -130,6 +133,46 @@ class Goblin_Army(Event):
                 return
         # Spawn goblin
 
+class Peacefull_Day(Event):
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.icon = (112,80)
+        self.duration = 20.0
+        self.max_duration = self.duration
+        self.max_action_cooldown = 1.0
+        self.action_cooldown = self.max_action_cooldown
+        self.goblin_army_spawn_duration = 15.0
+        self.event_art_path = "assets/day.jpg"
+        self.name = "Peacefull Day"
+
+    def do_event_action(self):
+        pass
+
+class Undead_Army(Event):
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.icon = (64,80)
+        self.duration = 20.0
+        self.max_duration = self.duration
+        self.max_action_cooldown = 1.0
+        self.action_cooldown = self.max_action_cooldown
+        self.necro_number = 1
+        self.event_art_path = "assets/skeletons.jpeg"
+        self.name = "Undead Army"
+
+    def on_start(self):
+        super().on_start()
+        # Spawn 3 necromancers
+        for i in range(self.necro_number):
+
+            new_necromancer = Necromancer(0,0)
+            # Get spot where to spawn
+            x_array = list(range(12))
+            random.shuffle(x_array)
+            for x in x_array:
+                if(self.building_manager.can_be_built(new_necromancer,x, 11)):
+                    self.building_manager.build_building(new_necromancer,x,11)
+                    break
 
 class EventManager:
     def __init__(self):
