@@ -6,7 +6,7 @@ from resource_manager import ResourceManager,ResourcesIndex, resource_sprites
 from buildings import Building, House
 from placer_manager import PlacerManager
 from building_manager import BuildingManager
-from event_manager import Event, EventManager, Goblin_Army, Resource_Event
+from event_manager import EventRarity,Event, EventManager, Goblin_Army, Resource_Event
 import copy
 # stores current choices
 # choices has id and types
@@ -54,11 +54,34 @@ events = [
 ]
 
 events_bars = [
+    # Goblins?
     [EventChoice(Goblin_Army()), EventChoice(Goblin_Army()), EventChoice(Goblin_Army()), EventChoice(Goblin_Army())],
+    
+    # Regular resource
     [EventChoice(Resource_Event(resource_index=ResourcesIndex.WOOD, resource_amount=1)),
      EventChoice(Resource_Event(resource_index=ResourcesIndex.STONE, resource_amount=1)),
      EventChoice(Resource_Event(resource_index=ResourcesIndex.FOOD, resource_amount=1)),
      EventChoice(Resource_Event(resource_index=ResourcesIndex.IRON, resource_amount=1)),]
+]
+
+legendary_events = [
+    # Supreme Supreme resource
+    [EventChoice(Resource_Event(resource_index=ResourcesIndex.WOOD, resource_amount=99)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.STONE, resource_amount=99)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.FOOD, resource_amount=99)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.IRON, resource_amount=25)),],
+]
+
+rare_events = [
+    # Supreme resource
+    [EventChoice(Resource_Event(resource_index=ResourcesIndex.WOOD, resource_amount=10)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.STONE, resource_amount=10)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.FOOD, resource_amount=10)),
+     EventChoice(Resource_Event(resource_index=ResourcesIndex.IRON, resource_amount=5)),],
+]
+
+common_events = [
+
 ]
 
 class ChoiceManager:
@@ -77,12 +100,19 @@ class ChoiceManager:
         self.choice_bar_size = CHOICE_BAR_SIZE
         self.choice_bar = None
         self.cooldown = 0.99
-        self.max_cooldown = 0.99
+        self.max_cooldown = 0.09
         self.choice_queue = []
         self.max_choice_queue = 4
         self.extra_choices = []
-        self.press_max_cooldown = 0.5
+        self.press_max_cooldown = 0.01
         self.press_current_cooldown = 0.0
+
+        self.legendary_chance = 1
+        self.rare_chance = 5
+        self.common_chance = 80
+
+        self.this_choice_rarity = None
+        self.event_source_name = None
     
     def draw_choice_pane(self):
         for i in range(self.choice_bar_size):
@@ -138,6 +168,34 @@ class ChoiceManager:
             pyxel.blt(choice_draw_x, choice_draw_y, 0, tile_u, tile_v, self.TILE_WIDTH, self.TILE_HEIGHT)
             spare_choices_number_str = str(len(self.choice_queue))
             pyxel.text(choice_draw_x+2, choice_draw_y+5, f"{spare_choices_number_str}/{self.max_choice_queue}",7)
+
+        # Draw choice name and its rarity
+        color_index = {
+            EventRarity.COMMON: 7,
+            EventRarity.RARE: 2,
+            EventRarity.LEGENDARY: 9,
+        }
+
+        choice_name = {
+            EventRarity.COMMON: "Common Choice",
+            EventRarity.RARE: "Rare Choice",
+            EventRarity.LEGENDARY: "LEGENDARY CHOICE",
+        }
+
+        if self.choice_bar == None:
+            choice_draw_x = self.CHOICE_PANE_BASE_X + self.TILE_WIDTH*(self.choice_bar_size+1)
+            choice_draw_y = self.CHOICE_PANE_BASE_Y
+            pyxel.text(choice_draw_x+18, choice_draw_y+2, f"Wait for next choice",13)
+        else:
+            # Draw 
+            choice_draw_x = self.CHOICE_PANE_BASE_X + self.TILE_WIDTH*(self.choice_bar_size+1)
+            choice_draw_y = self.CHOICE_PANE_BASE_Y
+            draw_text_rarity = choice_name[self.this_choice_rarity]
+            draw_text_color = color_index[self.this_choice_rarity]
+            pyxel.text(choice_draw_x+18, choice_draw_y+2, draw_text_rarity,draw_text_color)
+            if self.event_source_name != None:
+                pyxel.text(choice_draw_x+20, choice_draw_y+9, self.event_source_name, 7)
+
 
     def handle_click(self, clicked_index):
         if self.press_current_cooldown >= 0.0:
@@ -218,12 +276,34 @@ class ChoiceManager:
                 new_choice_bar = self.generate_choices()
                 self.choice_queue.pop(0)
                 self.choice_queue.insert(0, new_choice_bar)
+            else:
+                # ADD EVENT BUNDLE TO CHOICEBAR IF ADDED FROM SOMEWHERE ELSE
+                event_bundle = new_choice_bar
+                self.this_choice_rarity = event_bundle[1]
+                self.event_source_name = event_bundle[2]
+                new_choice_bar = event_bundle[0]
+
             self.choice_bar = new_choice_bar
             # Epic animations depending on rarity?
 
             self.press_current_cooldown = self.press_max_cooldown
         # else:
         #    self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
+    def get_weighted_result(self, weights, results):
+        cumulative_weights = []
+        current_sum = 0
+        for weight in weights:
+            current_sum += weight
+            cumulative_weights.append(current_sum)
+        
+        # Generate a random number between 0 and the sum of all weights
+        total_weight = cumulative_weights[-1]
+        random_num = random.uniform(0, total_weight)
+        
+        # Determine which choice corresponds to the random number
+        for i, cumulative_weight in enumerate(cumulative_weights):
+            if random_num <= cumulative_weight:
+                return results[i]
 
     def generate_choices(self):
         # find what buildings can be built
@@ -231,28 +311,57 @@ class ChoiceManager:
         # Basic event,
         # Rare event,
         # Legendary event,
-        
+
         # Basic event:
         # - generate event rarity
         # - find what can be built
         # - 
+        # Generate current event rarity:
+        weights = [self.common_chance, self.rare_chance, self.legendary_chance]
+        results = [EventRarity.COMMON,EventRarity.RARE,EventRarity.LEGENDARY]
+        
+        event_rarity = self.get_weighted_result(weights, results)
+        
 
-
-        possible_to_build = self.building_manager.buildings_possible_to_build()
+        # Generate temp bar
         temp_choice_bar = []
-        for i in range(self.choice_bar_size):
+        self.this_choice_rarity = event_rarity
+        self.event_source_name = None
 
-            building_choice = random.randint(0, len(possible_to_build)+4)
-            if (building_choice< len(possible_to_build)):
-                choosen_building = copy.deepcopy(possible_to_build[building_choice])
-                new_building = choosen_building
-                choice = BuildingChoice(new_building)
-                temp_choice_bar.append(choice)
-            else:
+        if event_rarity == EventRarity.LEGENDARY:
+            # regular events list?
+            random_index = random.randint(0, len(legendary_events)-1)
+            temp_choice_bar = copy.deepcopy(legendary_events[random_index])
+            return temp_choice_bar
+
+        if event_rarity == EventRarity.RARE:
+            random_index = random.randint(0, len(legendary_events)-1)
+            temp_choice_bar = copy.deepcopy(rare_events[random_index])
+            return temp_choice_bar
+
+        
+        possible_to_build = self.building_manager.buildings_possible_to_build()
+        # choice len = len(possible_to_build)
+        
+        # unlocked_buildings_lits?
+
+        # First field is always a resource?
+        for i in range(self.choice_bar_size):
+            if i == 0 or i > len(possible_to_build):
+                # gen resource:
                 # TODO chooses from all items, needs some filtrations maybe?
                 resource_type = random.choice(list(ResourcesIndex)).value
                 choice = ResourceChoice(resource_type=resource_type)
                 temp_choice_bar.append(choice)
-        
-        temp_choice_bar = copy.deepcopy(events_bars[1])
+
+            else:
+                # generate building
+                building_choice = random.randint(0, len(possible_to_build)-1)
+                choosen_building = copy.deepcopy(possible_to_build[building_choice])
+                new_building = choosen_building
+                choice = BuildingChoice(new_building)
+                temp_choice_bar.append(choice)
+        temp = temp_choice_bar[3]
+        temp_choice_bar[3] = temp_choice_bar[1]
+        temp_choice_bar[1] = temp
         return temp_choice_bar

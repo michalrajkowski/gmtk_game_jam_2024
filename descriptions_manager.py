@@ -1,5 +1,6 @@
 from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites, tile_names, tile_descriptions
+from resource_manager import resource_names, ResourcesIndex
 from buildings import Building
 from event_manager import Event
 import pyxel
@@ -53,6 +54,25 @@ class DescriptionsManager:
                        208 + 3+ 8,
                        building.description,
                        7)
+            # write cost:
+            iterator_index = 0
+            pyxel.text(0 + 3,
+                       256-10 + 2,
+                       "Cost:",
+                       7)
+            if len(list(building.building_cost)) == 0:
+                pyxel.text(0 + 3+22,
+                       256-10 + 2,
+                       "FREE",
+                       7)
+            for resource, cost in building.building_cost.items():
+                
+                pyxel.text(0 + 3+22+ 40*iterator_index,
+                       256-10 + 2,
+                       f"{resource_names[resource]}:{cost}",
+                       7)
+                iterator_index+=1
+
         elif self.placer_manager.selected_object != None:
             # draw description for object
             building :Building= self.placer_manager.selected_object

@@ -65,7 +65,7 @@ class ResourceManager:
     def __init__(self) -> None:
         
         # for all resources the amount is 0
-        self.resource_amount = {resource: 5 for resource in ResourcesIndex}
+        self.resource_amount = {resource: 0 for resource in ResourcesIndex}
         self.max_amount = {resource: 10 for resource in ResourcesIndex}
         self.is_resource_unlocked = {resource: False for resource in ResourcesIndex}
         self.is_resource_unlocked[ResourcesIndex.WOOD] = True

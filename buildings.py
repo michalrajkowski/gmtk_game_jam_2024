@@ -209,8 +209,7 @@ class Tower(Building):
         
         # Attack the enemy
         self.focused_enemy.take_damage(self.attack_damage, self)
-
-
+            
 class MovingUnit(Building):
     def __init__(self, x=0, y=0):
         super().__init__(x, y)

@@ -1,7 +1,7 @@
 from buildings import Building
 from typing import Dict, Tuple
 from tile_manager import TileManager, TileIndex
-from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf, Wolf_Tamed
+from buildings import House, Mine, Fishermans, Tower, MovingUnit, King, Wolf, Wolf_Tamed, FreeBuilding
 from resource_manager import ResourceManager
 import pyxel
 from collections import deque

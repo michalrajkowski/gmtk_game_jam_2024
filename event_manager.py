@@ -3,6 +3,18 @@ from buildings import Goblin, Tower
 from building_manager import BuildingManager
 import random
 from resource_manager import ResourcesIndex, resource_names, resource_sprites
+from enum import Enum
+class EventRarity(Enum):
+    COMMON = 0
+    RARE = 1
+    LEGENDARY = 2
+
+    @classmethod
+    def from_value(cls, value):
+        for item in cls:
+            if item.value == value:
+                return item
+        raise ValueError(f"Invalid value: {value}")
 
 class Event:
     def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False):
@@ -113,10 +125,8 @@ class Goblin_Army(Event):
         x_array = list(range(12))
         random.shuffle(x_array)
         for x in x_array:
-            print(x)
             if(self.building_manager.can_be_built(new_goblin,x, 0)):
                 self.building_manager.build_building(new_goblin,x,0)
-                print("goblin built")
                 return
         # Spawn goblin
 
@@ -128,7 +138,6 @@ class EventManager:
         self.resource_manager = None
     
     def add_event(self, event):
-        print(self.building_manager)
         self.event_list.append(event)
         event.building_manager = self.building_manager
         event.resource_manager = self.resource_manager
