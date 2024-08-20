@@ -21,6 +21,8 @@ class BuildingManager:
         # Initialize structures
         self.build_building(King(6,6), 6,6)
         self.build_building(Wolf(10,10), 10,10)
+        self.build_building(Wolf(2,2), 2,2)
+        self.build_building(Wolf(5,7), 5,7)
 
         #self.building_dict[(6,6)].focused_enemy = self.building_dict[(10,10)]
         self.possible_buildings = [
