@@ -30,12 +30,15 @@ CHOICE_PANE_BASE_Y = 192
 CHOICE_BAR_SIZE = 4
 
 PLAY_BUTTON = (16*6,16*4,16*4,16*2)
-QUIT_BUTTON = (16*6, 16*7, 16*4,16*2)
+QUIT_BUTTON = (16*6, 16*10, 16*4,16*2)
+HOW_TO_PLAY_BUTTON = (16*6, 16*7,16*4,16*2)
 
 PLAY_AGAIN_BUTTON = (4*16,4*16,16*4,16*2)
 GO_TO_MENU_BUTTON = (4*16, 7*16, 16*4,16*2)
 
 RESUME_BUTTON = (4*16,4*16,16*4,16*2)
+
+NEXT_BUTTON = (0,0,16*4,16*2)
 
 class TileMap:
     def __init__(self):
@@ -62,6 +65,8 @@ class App:
         pyxel.images[2].load(0,16*4,"assets_buttons_resized/PlayAgain.png")
         pyxel.images[2].load(0,16*6,"assets_buttons_resized/Menu.png")
         pyxel.images[2].load(0,16*8,"assets_buttons_resized/Unpause.png")
+        pyxel.images[2].load(0,16*10,"assets_buttons_resized/HowToPlay.png")
+        pyxel.images[2].load(0,16*12,"assets_buttons_resized/NextButton.png")
 
     def update(self):
 
@@ -76,6 +81,9 @@ class App:
             self.simulate_menu()
         if(self.game_manager.game_state == GameState.LOSE_SCREEN):
             self.simulate_lose()
+
+        if(self.game_manager.game_state == GameState.HOW_TO_PLAY):
+            self.simulate_how_to_play()
         
         if (self.game_manager.game_state == GameState.PAUSE):
             if pyxel.btnp(pyxel.KEY_P) or pyxel.btnp(pyxel.KEY_SPACE):
@@ -100,6 +108,44 @@ class App:
             self.draw_lose_screen()
         if self.game_manager.game_state == GameState.PAUSE:
             self.draw_pause()
+        if self.game_manager.game_state == GameState.HOW_TO_PLAY:
+            self.draw_how_to_play()
+
+    def draw_how_to_play(self):
+        pyxel.images[1].load(0,0,"assets/ScreenFinal.png")
+        pyxel.blt(0,0,1,0,0,256,256)
+        pyxel.blt(NEXT_BUTTON[0],NEXT_BUTTON[1],2,0,16*12,NEXT_BUTTON[2],NEXT_BUTTON[3])
+
+        messages_dict = {
+            0:"The goal of the game is to\nsurvive as long as possible\nWhen your king is dead\nyou lose the game",
+            1:"This is the map.\nMost things happen here",
+            2:"When we press with the mouse\nleft mouse button on anything\ndescription with info will be\nshown on bottom screen...",
+            3:"For example when we press on\nthe King it will look like\nthis.",
+            4:"You can move selected unit with\nmouse+CTRL\nYou can move the king for\nexample",
+            5:"Below map is the choice\nbar.\nYou can get resources from here\nand building to build.",
+            6:"On the bottom right is \ncalendar..\nIt shows current events",
+            7:"After some time\nWaves of enemies will spawn.\nGood luck",
+            8:"",
+        }
+
+        rects_dict = {
+            0: (),
+            1: ((0,12*16,16*16,16*4), (12*16,0,16*4,16*16)),
+            2: ((0,12*16,16*16,16*4), (12*16,0,16*4,16*16)),
+            3: ((12*16,0,16*4,16*16),(0*16,12*16,16*16,16)),
+            4: (),
+            5: (),
+            6: (),
+            7: (),
+            8: (),
+        }
+        # Draw current tip:
+        pyxel.rect(16*4,0,16*8,16*2+3,7)
+        pyxel.rect(16*4,3,16*8-3,16*2-3,0)
+
+        pyxel.text(16*4+4,0+4,messages_dict[self.game_manager.how_page],7)
+        for rect in rects_dict[self.game_manager.how_page]:
+            pyxel.rect(rect[0],rect[1],rect[2],rect[3],0)
 
     def draw_menu(self):
         # Draw menu?
@@ -112,6 +158,9 @@ class App:
         # draw quit button
         pyxel.rect(QUIT_BUTTON[0],QUIT_BUTTON[1],QUIT_BUTTON[2],QUIT_BUTTON[3], 7)
         pyxel.blt(QUIT_BUTTON[0],QUIT_BUTTON[1],2,0,16*2,QUIT_BUTTON[2],QUIT_BUTTON[3])
+
+        pyxel.rect(HOW_TO_PLAY_BUTTON[0],HOW_TO_PLAY_BUTTON[1],HOW_TO_PLAY_BUTTON[2],HOW_TO_PLAY_BUTTON[3], 7)
+        pyxel.blt(HOW_TO_PLAY_BUTTON[0],HOW_TO_PLAY_BUTTON[1],2,0,16*10,HOW_TO_PLAY_BUTTON[2],HOW_TO_PLAY_BUTTON[3])
         pass
     def draw_lose_screen(self):
         # draw play button
@@ -153,6 +202,9 @@ class App:
         if (self.is_in_button(QUIT_BUTTON,mouse_x, mouse_y)):
             pyxel.quit() 
 
+        if (self.is_in_button(HOW_TO_PLAY_BUTTON,mouse_x, mouse_y)):
+            self.game_manager.game_state = GameState.HOW_TO_PLAY 
+            self.game_manager.how_page = 0
 
     def simulate_lose(self):
         if not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
@@ -165,6 +217,18 @@ class App:
 
         if (self.is_in_button(GO_TO_MENU_BUTTON,mouse_x, mouse_y)):
             self.game_manager.game_state = GameState.MENU 
+        
+    def simulate_how_to_play(self):
+        if self.game_manager.how_page > 7:
+            self.game_manager.game_state=GameState.MENU
+            return
+        if not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            return
+        (mouse_x, mouse_y) = (pyxel.mouse_x,pyxel.mouse_y)
+
+        if (self.is_in_button(NEXT_BUTTON,mouse_x, mouse_y)):
+            self.game_manager.how_page+=1
+        
         
     def draw_game(self):
         self.draw_tile_map()

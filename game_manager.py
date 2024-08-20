@@ -6,6 +6,7 @@ class GameState(Enum):
     GAME = 1
     LOSE_SCREEN = 2
     PAUSE = 3
+    HOW_TO_PLAY = 4
 
     @classmethod
     def from_value(cls, value):
@@ -17,6 +18,7 @@ class GameState(Enum):
 class GameManager:
     _instance = None
     game_state = GameState.MENU
+    how_page = 0
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:

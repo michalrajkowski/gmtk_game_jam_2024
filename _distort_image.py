@@ -16,8 +16,7 @@ for filename in os.listdir(input_dir):
 
         # Open the image, resize it, and save it to the output directory
         with Image.open(input_path) as img:
-            resized_img = img.resize((128, 128), Image.NEAREST)
-            resized_img = resized_img.resize((256, 256), Image.NEAREST)
+            resized_img = img.resize((256, 256), Image.NEAREST)
             resized_img.save(output_path)
             print(f"Processed and saved {filename} to {output_dir}.")
 
