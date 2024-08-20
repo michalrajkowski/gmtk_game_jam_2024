@@ -29,11 +29,13 @@ CHOICE_PANE_BASE_Y = 192
 
 CHOICE_BAR_SIZE = 4
 
-PLAY_BUTTON = (78,50,100,40)
-QUIT_BUTTON = (78, 100, 100, 40)
+PLAY_BUTTON = (78,50,16*4,16*2)
+QUIT_BUTTON = (78, 100, 16*4,16*2)
 
-PLAY_AGAIN_BUTTON = (78,50,100,40)
-GO_TO_MENU_BUTTON = (78, 100, 100, 40)
+PLAY_AGAIN_BUTTON = (78,50,16*4,16*2)
+GO_TO_MENU_BUTTON = (78, 100, 16*4,16*2)
+
+RESUME_BUTTON = (78,50,16*4,16*2)
 
 class TileMap:
     def __init__(self):
@@ -51,9 +53,16 @@ class App:
 
         # load tilemap images:
         pyxel.load("tiles.pyxres")
-
+        self.load_buttons_sprites()
         # pyxel.images[0].load(0, 0, "assets/pyxel_logo_38x16.png")
         pyxel.run(self.update, self.draw)
+
+    def load_buttons_sprites(self):
+        pyxel.images[2].load(0,0,"assets_buttons_resized/PlayButton.png")
+        pyxel.images[2].load(0,16*2,"assets_buttons_resized/QuitButton.png")
+        pyxel.images[2].load(0,16*4,"assets_buttons_resized/PlayAgain.png")
+        pyxel.images[2].load(0,16*6,"assets_buttons_resized/Menu.png")
+        pyxel.images[2].load(0,16*8,"assets_buttons_resized/Unpause.png")
 
     def update(self):
 
@@ -68,35 +77,60 @@ class App:
             self.simulate_menu()
         if(self.game_manager.game_state == GameState.LOSE_SCREEN):
             self.simulate_lose()
+        
+        if (self.game_manager.game_state == GameState.PAUSE):
+            if pyxel.btnp(pyxel.KEY_P) or pyxel.btnp(pyxel.KEY_SPACE):
+                self.game_manager.game_state = GameState.GAME
+            return
+
         if (self.game_manager.game_state == GameState.GAME):
             self.building_manager.simulate()
             self.choice_manager.simulate()
             self.event_manager.simulate()
             self.wave_manager.simulate()        
-
+            if pyxel.btnp(pyxel.KEY_P) or pyxel.btnp(pyxel.KEY_SPACE):
+                self.game_manager.game_state = GameState.PAUSE
     def draw(self):
         pyxel.cls(0)
         
         if self.game_manager.game_state == GameState.MENU:
             self.draw_menu()
-        if self.game_manager.game_state == GameState.GAME or self.game_manager.game_state == GameState.LOSE_SCREEN:
+        if self.game_manager.game_state == GameState.GAME or self.game_manager.game_state == GameState.LOSE_SCREEN or self.game_manager.game_state == GameState.PAUSE:
             self.draw_game()
         if self.game_manager.game_state == GameState.LOSE_SCREEN:
             self.draw_lose_screen()
+        if self.game_manager.game_state == GameState.PAUSE:
+            self.draw_pause()
 
     def draw_menu(self):
         # Draw menu?
         # draw play button
         pyxel.rect(PLAY_BUTTON[0],PLAY_BUTTON[1],PLAY_BUTTON[2],PLAY_BUTTON[3], 7)
+        pyxel.blt(PLAY_BUTTON[0],PLAY_BUTTON[1],2,0,0,PLAY_BUTTON[2],PLAY_BUTTON[3])
         # draw quit button
         pyxel.rect(QUIT_BUTTON[0],QUIT_BUTTON[1],QUIT_BUTTON[2],QUIT_BUTTON[3], 7)
+        pyxel.blt(QUIT_BUTTON[0],QUIT_BUTTON[1],2,0,16*2,QUIT_BUTTON[2],QUIT_BUTTON[3])
         pass
     def draw_lose_screen(self):
         # draw play button
         pyxel.rect(PLAY_AGAIN_BUTTON[0],PLAY_AGAIN_BUTTON[1],PLAY_AGAIN_BUTTON[2],PLAY_AGAIN_BUTTON[3], 7)
+        pyxel.blt(PLAY_AGAIN_BUTTON[0],PLAY_AGAIN_BUTTON[1],2,0,16*4,PLAY_AGAIN_BUTTON[2],PLAY_AGAIN_BUTTON[3])
         # draw quit button
         pyxel.rect(GO_TO_MENU_BUTTON[0],GO_TO_MENU_BUTTON[1],GO_TO_MENU_BUTTON[2],GO_TO_MENU_BUTTON[3], 7)
+        pyxel.blt(GO_TO_MENU_BUTTON[0],GO_TO_MENU_BUTTON[1],2,0,16*6,GO_TO_MENU_BUTTON[2],GO_TO_MENU_BUTTON[3])
         pass
+    def draw_pause(self):
+        # draw play button
+        pyxel.rect(RESUME_BUTTON[0],RESUME_BUTTON[1],RESUME_BUTTON[2],RESUME_BUTTON[3], 7)
+        pyxel.blt(RESUME_BUTTON[0],RESUME_BUTTON[1],2,0,16*8,RESUME_BUTTON[2],RESUME_BUTTON[3])
+        
+        # Handle Pause
+        if not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            return
+        (mouse_x, mouse_y) = (pyxel.mouse_x,pyxel.mouse_y)
+
+        if (self.is_in_button(RESUME_BUTTON,mouse_x, mouse_y)):
+            self.game_manager.game_state = GameState.GAME
     
     def is_in_rect(self,o_x, o_y ,x, y, w, h):
         if (x<=o_x<=x+w and y<=o_y<=y+h):

@@ -5,6 +5,7 @@ class GameState(Enum):
     MENU = 0
     GAME = 1
     LOSE_SCREEN = 2
+    PAUSE = 3
 
     @classmethod
     def from_value(cls, value):
