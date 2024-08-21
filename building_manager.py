@@ -14,6 +14,9 @@ class BuildingManager:
     def __init__(self, tile_manager:TileManager, resource_manager:ResourceManager):
         self.resource_manager = resource_manager
         self.tile_manager = tile_manager
+        self.event_manager = None
+
+    def post_init(self):
         self.building_dict = {
             # (6,6):King(6,6),
             #(10,10):House(10,10)
@@ -38,6 +41,7 @@ class BuildingManager:
             Villager(),
             Knight(),
         ]
+
 
     def simulate(self):
         to_move_list = []
@@ -90,6 +94,7 @@ class BuildingManager:
         building.resource_manager = self.resource_manager
         building.tile_manager = self.tile_manager
         building.building_manager = self
+        building.event_manager = self.event_manager
 
     
 

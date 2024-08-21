@@ -12,6 +12,7 @@ from particles_manager import ParticleManager
 from event_manager import EventManager, Event
 from wave_manager import WaveManager
 from game_manager import GameManager, GameState
+from animation_handler import AnimationHandler
 
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
@@ -94,7 +95,8 @@ class App:
             self.building_manager.simulate()
             self.choice_manager.simulate()
             self.event_manager.simulate()
-            self.wave_manager.simulate()        
+            self.wave_manager.simulate()    
+            self.animation_handler.simulate_all()    
             if pyxel.btnp(pyxel.KEY_P) or pyxel.btnp(pyxel.KEY_SPACE):
                 self.game_manager.game_state = GameState.PAUSE
     def draw(self):
@@ -232,6 +234,7 @@ class App:
         
     def draw_game(self):
         self.draw_tile_map()
+        self.animation_handler.draw_all()
         self.draw_buildings()
         self.mouse_hover_tile_select()
         self.draw_resources()
@@ -269,8 +272,18 @@ class App:
 
         self.wave_manager = WaveManager(event_manager=self.event_manager)
 
+        self.animation_handler = AnimationHandler()
+
         # Aditional requirements
         self.choice_manager.event_manager = self.event_manager
+        
+        self.building_manager.event_manager = self.event_manager
+        
+        self.event_manager.animation_handler = self.animation_handler
+
+        self.animation_handler.building_manager = self.building_manager
+        # post inits
+        self.building_manager.post_init()
 
     def draw_tile_map(self):
         # draw all tiles 
@@ -416,8 +429,7 @@ class App:
             (tile_x, tile_y) = (building.x, building.y)
             draw_x = TILE_WIDTH*tile_x
             draw_y = TILE_HEIGHT*tile_y
-            pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT,0)
-            
+            # pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, TILE_WIDTH, TILE_HEIGHT,0)
             
             # Draw enemy mark!
             if building.is_moving_unit:

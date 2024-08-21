@@ -1,22 +1,32 @@
-- Map with tiles
-- Resources
-- choose thing from top (randomly generated) + reroll button + cooldown how often can be chosen?
-- place things on the map and simulate them?
-- lose condition? - enemy attacks / events?
-
-Buildings:
-- require resources to be bougth
-- require space to place them?
-- green - can be built
-- red - cant be built
-- building process (sprite is created pixel byayer?
-- text layer?
-
-
-
 TODO: show increasement amount next to resources
 
-
-
-
 - DRAW SELECTED UNIT ATTACK RANGE
+
+FEATURES LIST:
+1. Unit attack animation
+2. Damage animation
+3. Day-night cycle
+4. Rarity animation
+5. Particle effect - text moves up
+6. Better mouse controls
+
+RANDOM IDEAS:
++ special "circular" attack animation for barbarian unit?
++ cleric heal
++ builder repairs buildings
+
+1. Unit attack animation:
+- animation handler?
+- dont attack right away, queue animation that will do damage at the end?
+    - split the method to attack start and attack finish:
+- unit moves in the direction of attacked unit?
+    - sprite drawing position offset (before drawing the sprite)
+
+2. Damage animation
+- Make character a white sprite for a brief amount of time after taking damage.
+
+
+6. Mouse controls
+- left click to SELECTED
+    - hold to select multiple
+- right click to move them multiple

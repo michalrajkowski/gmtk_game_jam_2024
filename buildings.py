@@ -2,6 +2,7 @@ from resource_manager import ResourceManager,ResourcesIndex, resource_sprites, r
 from tile_manager import TileIndex, TileManager
 from particles_manager import ParticleManager
 from game_manager import GameManager, GameState
+# from event_manager import MeleeAttack_Event
 import random
 # jakie cechy powinien mieć base building
 # - pozycja
@@ -29,6 +30,7 @@ class Building:
         self.resource_manager: ResourceManager = None
         self.tile_manager: TileManager = None
         self.particle_manager = ParticleManager()
+        self.event_manager = None
         self.building_manager = None
         self.id = 0
         self.name = "MISSING NAME"
@@ -47,6 +49,9 @@ class Building:
         self.max_hp = 1
         self.current_hp = self.max_hp
         self.damage_reduction = 0
+        self.is_alive = True
+
+        self.is_busy = False
 
         self.attack_damage = 1
         self.attack_range = 1
@@ -118,19 +123,39 @@ class Building:
             return
         
         # Attack the enemy
-        self.focused_enemy.take_damage(self.attack_damage, self)
+        self.start_attack()
 
     def choose_enemy(self):
         pass
 
     def take_damage(self,incoming_damage, attacking_unit=None):
+        from event_manager import DamageHit_event
         real_damage = max(incoming_damage - self.damage_reduction,0)
         self.current_hp -= real_damage
         self.particle_manager.add_particle(f"{-1*real_damage} Hp", (self.x, self.y), color_number=2)
         
+        hit_event = DamageHit_event(self,duration=0.2)
+        self.event_manager.add_event(hit_event)
+
         if (self.current_hp <= 0):
+            self.is_alive = False
             self.on_death()
             self.building_manager.delete_building(self)
+
+    def deal_damage(self, target, damage):
+        target:Building = target
+        target.take_damage(damage, self)
+        print(f"deal damage:{self}")
+
+    def start_attack(self, attack_number=0):
+        # create correct attack animation?
+        # Basic attack is to just deal damage
+        print(f"start attack:{self}")
+        self.deal_damage(self.focused_enemy, self.attack_damage)
+        self.is_busy=True
+
+    def end_attack(self):
+        self.is_busy = False
 
     def on_build(self):
         pass
@@ -488,7 +513,17 @@ class MovingUnit(Building):
         self.speed_cooldown -= float(1/30)
         if (self.speed_cooldown <= 0.0):
             self.speed_cooldown = self.speed
-            self.move_me=True
+            if not self.is_busy:
+                self.move_me=True
+
+    def start_attack(self, attack_number=0):
+        self.is_busy = True
+        from event_manager import MeleeAttack_Event, EventManager
+        # create correct attack animation?
+        # Basic attack is to just deal damage
+        attack_event = MeleeAttack_Event(self, self.focused_enemy, duration=self.attack_cooldown_max*0.5, max_action_cooldown=self.attack_cooldown_max*0.5*0.66)
+        self.event_manager:EventManager = self.event_manager
+        self.event_manager.add_event(attack_event)
 
 class King(MovingUnit):
     def __init__(self, x=0, y=0):
@@ -503,6 +538,7 @@ class King(MovingUnit):
 
     def simulate_building(self):
         super().simulate_building()
+        print(self.is_busy)
 
     def on_death(self):
         super().on_death()
@@ -524,6 +560,7 @@ class Wolf(MovingUnit):
 
     def simulate_building(self):
         super().simulate_building()
+
 
     def take_damage(self, incoming_damage, attacking_unit=None):
         super().take_damage(incoming_damage, attacking_unit)

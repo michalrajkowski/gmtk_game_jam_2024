@@ -21,6 +21,7 @@ class Event:
         self.event_manager = None
         self.building_manager = None
         self.resource_manager = None
+        self.animation_handler = None
         self.duration = duration
         self.max_duration = self.duration
         self.max_action_cooldown = max_action_cooldown
@@ -174,17 +175,60 @@ class Undead_Army(Event):
                     self.building_manager.build_building(new_necromancer,x,11)
                     break
 
+class MeleeAttack_Event(Event):
+    def __init__(self, object_original, object_target, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.object_original = object_original
+        self.object_target = object_target
+    
+    def on_start(self):
+        from animation_handler import MeleeAttackAnimation, AnimationHandler
+        super().on_start()
+        # Spawn animation?
+        attack_animation = MeleeAttackAnimation(self.object_original, self.object_target, self.duration) # We multiply by 1.5 coz during 66% animation time we attack
+        self.animation_handler: AnimationHandler = self.animation_handler
+        self.animation_handler.add_animation(attack_animation)
+        
+
+    def on_end(self):
+        from buildings import Building
+        super().on_end()
+        # Deal damage?
+        self.object_original.end_attack()
+
+    def do_event_action(self):
+        from buildings import Building
+        super().do_event_action()
+        # Deal damage?
+        self.object_original : Building = self.object_original
+        self.object_original.deal_damage(self.object_target, self.object_original.attack_damage)
+
+class DamageHit_event(Event):
+    def __init__(self, object_original, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.object_original = object_original
+    
+    def on_start(self):
+        from animation_handler import Hit_Effect, AnimationHandler
+        super().on_start()
+        # Spawn animation?
+        hit_effect = Hit_Effect(self.object_original, self.duration) # We multiply by 1.5 coz during 66% animation time we attack
+        self.animation_handler: AnimationHandler = self.animation_handler
+        self.animation_handler.add_effect(hit_effect)
+
 class EventManager:
     def __init__(self):
         self.event_list = []
         self.building_manager = None
         self.resource_manager = None
+        self.animation_handler = None
     
     def add_event(self, event):
         self.event_list.append(event)
         event.building_manager = self.building_manager
         event.resource_manager = self.resource_manager
         event.event_manager = self
+        event.animation_handler = self.animation_handler
     
     def simulate(self):
         for event in list(self.event_list):
