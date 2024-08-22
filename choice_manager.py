@@ -7,6 +7,7 @@ from buildings import Building, House
 from placer_manager import PlacerManager
 from building_manager import BuildingManager
 from event_manager import EventRarity,Event, EventManager, Goblin_Army, Resource_Event
+from animation_handler import AnimationHandler, Particle_effect, Point, Effect
 import copy
 # stores current choices
 # choices has id and types
@@ -91,6 +92,7 @@ class ChoiceManager:
         self.building_manager = building_manager
         self.resource_manager=resource_manager
         self.event_manager=None
+        self.animation_manager = None
         self.placer_manager = placer_manager
         self.CHOICE_PANE_BASE_X = CHOICE_PANE_BASE_X
         self.CHOICE_PANE_BASE_Y = CHOICE_PANE_BASE_Y
@@ -107,13 +109,13 @@ class ChoiceManager:
         self.press_max_cooldown = 0.01
         self.press_current_cooldown = 0.0
 
-        self.legendary_chance = 1
-        self.rare_chance = 5
+        self.legendary_chance = 80#1
+        self.rare_chance = 80#5
         self.common_chance = 80
 
         self.this_choice_rarity = None
         self.event_source_name = None
-    
+   
     def draw_choice_pane(self):
         for i in range(self.choice_bar_size):
             choice_draw_x = self.CHOICE_PANE_BASE_X + self.TILE_WIDTH*i
@@ -288,8 +290,28 @@ class ChoiceManager:
             # Epic animations depending on rarity?
 
             self.press_current_cooldown = self.press_max_cooldown
+            self.spawn_choice_animations()
         # else:
         #    self.choice_bar = [NullChoice() for _ in range(self.choice_bar_size)]
+    def spawn_choice_animations(self):
+        for i in range(len(self.choice_bar)):
+            choice_draw_x = self.CHOICE_PANE_BASE_X + self.TILE_WIDTH*i
+            choice_draw_y = self.CHOICE_PANE_BASE_Y
+            rarity = self.this_choice_rarity
+            p = Point(choice_draw_x, choice_draw_y)
+            if rarity==EventRarity.COMMON:
+                pe = Particle_effect(p, max_time=0.5, particle_number=10, particle_color=7, particle_speed=0.6)
+                self.animation_manager.add_effect(pe)
+            elif rarity==EventRarity.RARE:
+                pe = Particle_effect(p, max_time=0.6, particle_number=40, particle_color=5, particle_speed=0.7)
+                self.animation_manager.add_effect(pe)
+            else:
+                pe = Particle_effect(p, max_time=0.7, particle_number=100, particle_color=10, particle_speed=0.9)
+                self.animation_manager.add_effect(pe)
+
+                
+
+    
     def get_weighted_result(self, weights, results):
         cumulative_weights = []
         current_sum = 0

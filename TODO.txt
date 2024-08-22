@@ -3,12 +3,11 @@ TODO: show increasement amount next to resources
 - DRAW SELECTED UNIT ATTACK RANGE
 
 FEATURES LIST:
-1. Unit attack animation
-2. Damage animation
 3. Day-night cycle
 4. Rarity animation
 5. Particle effect - text moves up
 6. Better mouse controls
+7. Sort effects by layers
 
 RANDOM IDEAS:
 + special "circular" attack animation for barbarian unit?
@@ -16,6 +15,9 @@ RANDOM IDEAS:
 + builder repairs buildings
 
 
+4. Rarity animation
+- play animation on event getting
+- tiles coloring constant until selected?
 
 
 6. Mouse controls

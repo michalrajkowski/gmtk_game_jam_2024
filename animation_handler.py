@@ -1,5 +1,7 @@
 import pyxel
 import math
+import random
+import numpy
 
 # Renders sprites with their animations
 # Makes sure that there is not many animations at the same time for sprite
@@ -88,7 +90,6 @@ class MeleeAttackAnimation(ObjectAnimation):
 
 # Graphical thing drawn on the screen
 # Has the layer, which tells the order of drawing them
-
 # Attack event spawns animation and is tied to it?
 class Effect:
     def __init__(self, object_assigned_to, max_time, starting_offset_x=0, starting_offset_y=0, relative=True) -> None:
@@ -116,6 +117,48 @@ class Effect:
 
     def draw(self):
         pass
+
+class Point():
+    def __init__(self, x=0, y=0) -> None:
+        self.x = x
+        self.y = y
+        pass
+
+class Particle_effect(Effect):
+    def __init__(self, object_assigned_to, max_time, starting_offset_x=0, starting_offset_y=0, relative=True,
+                 particle_number=0, particle_speed=0,particle_color=0) -> None:
+        super().__init__(object_assigned_to, max_time, starting_offset_x, starting_offset_y, relative)
+        # create particles
+        self.x = object_assigned_to.x
+        self.y = object_assigned_to.y
+        self.particle_number : int = particle_number
+        self.particle_speed : float =particle_speed
+        self.particle_color : int = particle_color
+        self.particle_list = []
+        for i in range(self.particle_number):
+            px = self.x + 8
+            py = self.y + 8
+            vx = random.random() * numpy.sign(random.random() - 0.5)
+            vy = random.random() * numpy.sign(random.random() - 0.5)
+            v_normalized = normalize([vx, vy])
+            particle = (px, py, v_normalized[0], v_normalized[1])
+            self.particle_list.append(particle)
+
+    def calculate_offsets(self):
+        for particle in self.particle_list[:]:
+            print(particle)
+            n_particle = (float(particle[0])+float(particle[2])*self.particle_speed,
+                          float(particle[1])+float(particle[3])*self.particle_speed,
+                          particle[2],
+                          particle[3]) 
+            self.particle_list.remove(particle)
+            self.particle_list.append(n_particle)
+
+    def draw(self):
+        for particle in self.particle_list[:]:
+            pyxel.pset(int(particle[0]),int(particle[1]),self.particle_color)
+
+    # particle animation is a splash of particle moving into random direction and lifetime from origin points?
 
 class Hit_Effect(Effect):
     def __init__(self, object_assigned_to, max_time, starting_offset_x=0, starting_offset_y=0, relative=True) -> None:

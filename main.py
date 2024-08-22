@@ -234,12 +234,12 @@ class App:
         
     def draw_game(self):
         self.draw_tile_map()
-        self.animation_handler.draw_all()
-        self.draw_buildings()
         self.mouse_hover_tile_select()
         self.draw_resources()
         self.wave_manager.draw()
         self.choice_manager.draw_choice_pane()
+        self.animation_handler.draw_all()
+        self.draw_buildings()
         self.placer_manager.draw_selected()
         self.draw_hp_bar()
 
@@ -276,7 +276,8 @@ class App:
 
         # Aditional requirements
         self.choice_manager.event_manager = self.event_manager
-        
+        self.choice_manager.animation_manager = self.animation_handler
+
         self.building_manager.event_manager = self.event_manager
         
         self.event_manager.animation_handler = self.animation_handler
