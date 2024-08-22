@@ -145,12 +145,12 @@ class Building:
     def deal_damage(self, target, damage):
         target:Building = target
         target.take_damage(damage, self)
-        print(f"deal damage:{self}")
+        
 
     def start_attack(self, attack_number=0):
         # create correct attack animation?
         # Basic attack is to just deal damage
-        print(f"start attack:{self}")
+        
         self.deal_damage(self.focused_enemy, self.attack_damage)
         self.is_busy=True
 
@@ -160,7 +160,7 @@ class Building:
     def on_build(self):
         pass
     def on_death(self):
-        print(f"{self.name} died!")
+        
         pass
     def do_building_action(self):
         pass 
@@ -538,7 +538,7 @@ class King(MovingUnit):
 
     def simulate_building(self):
         super().simulate_building()
-        print(self.is_busy)
+       
 
     def on_death(self):
         super().on_death()

@@ -15,15 +15,7 @@ RANDOM IDEAS:
 + cleric heal
 + builder repairs buildings
 
-1. Unit attack animation:
-- animation handler?
-- dont attack right away, queue animation that will do damage at the end?
-    - split the method to attack start and attack finish:
-- unit moves in the direction of attacked unit?
-    - sprite drawing position offset (before drawing the sprite)
 
-2. Damage animation
-- Make character a white sprite for a brief amount of time after taking damage.
 
 
 6. Mouse controls

@@ -347,7 +347,15 @@ class ChoiceManager:
 
         # First field is always a resource?
         for i in range(self.choice_bar_size):
-            if i == 0 or i > len(possible_to_build):
+            print(possible_to_build)
+            if len(possible_to_build) > 0 and i != 3:
+                building_choice = random.randint(0, len(possible_to_build)-1)
+                choosen_building = possible_to_build[building_choice]
+                new_building = copy.deepcopy(choosen_building)
+                choice = BuildingChoice(new_building)
+                temp_choice_bar.append(choice)
+                possible_to_build.remove(choosen_building)
+            else:
                 # gen resource:
                 # TODO chooses from all items, needs some filtrations maybe?
                 random_choice=random.random()
@@ -357,14 +365,6 @@ class ChoiceManager:
                     choice = EventChoice(Resource_Event(resource_index=ResourcesIndex.STONE, resource_amount=1))
                 else:
                     choice = EventChoice(Resource_Event(resource_index=ResourcesIndex.WOOD, resource_amount=1))
-                temp_choice_bar.append(choice)
-
-            else:
-                # generate building
-                building_choice = random.randint(0, len(possible_to_build)-1)
-                choosen_building = copy.deepcopy(possible_to_build[building_choice])
-                new_building = choosen_building
-                choice = BuildingChoice(new_building)
                 temp_choice_bar.append(choice)
         random.shuffle(temp_choice_bar)
         return temp_choice_bar

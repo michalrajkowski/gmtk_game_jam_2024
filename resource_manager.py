@@ -41,13 +41,16 @@ resource_sprites = {
     ResourcesIndex.LEATHER: (64, 32),
     ResourcesIndex.GOLD: (80, 32),
     ResourcesIndex.MITHRIL: (96, 32),
-    #ResourcesIndex.BLANK_2: (48, 32),
-    #ResourcesIndex.BLANK_3: (48, 32),
-    #ResourcesIndex.BLANK_4: (48, 32),
-    #ResourcesIndex.BLANK_5: (48, 32),
-    #ResourcesIndex.BLANK_6: (48, 32),
-    #ResourcesIndex.BLANK_7: (48, 32),
-    #ResourcesIndex.BLANK_8: (48, 32),
+}
+
+resource_mini_icons = {
+    ResourcesIndex.WOOD: (112, 32),
+    ResourcesIndex.STONE: (120, 32),
+    ResourcesIndex.FOOD: (112, 40),
+    ResourcesIndex.IRON: (120, 40),
+    ResourcesIndex.LEATHER: (128, 32),
+    ResourcesIndex.GOLD: (136, 32),
+    ResourcesIndex.MITHRIL: (128, 40),
 }
 
 # Names for each resource, including the BLANK entries

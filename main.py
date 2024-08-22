@@ -3,7 +3,7 @@ import random
 from building_manager import BuildingManager
 from choice_manager import ChoiceManager
 from buildings import Building,Tower
-from resource_manager import ResourceManager, ResourcesIndex, resource_names, resource_sprites
+from resource_manager import ResourceManager, ResourcesIndex, resource_names, resource_sprites, resource_mini_icons
 from placer_manager import PlacerManager
 from tile_manager import TileManager, TileIndex, tile_sprites
 from descriptions_manager import DescriptionsManager
@@ -405,16 +405,16 @@ class App:
             resource_amount = str(self.resource_manager.resource_amount[resource])
             resource_max = str(self.resource_manager.max_amount[resource])
             
-            resource_draw_x = RESOURCES_BASE_X + 1 + 14
-            resource_draw_y = RESOURCE_BASE_Y + 16 * iteration_index
+            resource_draw_x = RESOURCES_BASE_X + 1 + 10
+            resource_draw_y = RESOURCE_BASE_Y + 10 * iteration_index
             
-            pyxel.text(resource_draw_x, resource_draw_y+6, resource_name, 7)
+            pyxel.text(resource_draw_x, resource_draw_y+1, resource_name, 7)
             
             resource_draw_x = RESOURCES_BASE_X + 26 + 18
-            pyxel.text(resource_draw_x, resource_draw_y+6, f'{resource_amount}/{resource_max}', 7)
+            pyxel.text(resource_draw_x, resource_draw_y+1, f'{resource_amount}/{resource_max}', 7)
             
-            sprite_x, sprite_y = resource_sprites[resource]
-            pyxel.blt(RESOURCES_BASE_X , resource_draw_y, 0, sprite_x, sprite_y, TILE_WIDTH, TILE_HEIGHT, 0)
+            sprite_x, sprite_y = resource_mini_icons[resource]
+            pyxel.blt(RESOURCES_BASE_X+1 , resource_draw_y, 0, sprite_x, sprite_y, 8, 8, 0)
             iteration_index+=1
 
     def draw_buildings(self):
