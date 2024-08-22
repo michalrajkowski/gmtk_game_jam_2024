@@ -44,7 +44,7 @@ class MeleeAttackAnimation(ObjectAnimation):
         self.target_object = target_object
 
     def calculate_offsets(self):
-        print(f"animation time:{self.current_time}")
+        
         # Here we calculate the offsets for the thing:
         # Get animation point
         # function "smooth/lerp" between them

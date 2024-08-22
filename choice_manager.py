@@ -252,12 +252,13 @@ class ChoiceManager:
             this_choice: BuildingChoice = this_choice
             this_choice_building = this_choice.building
             self.placer_manager.choice_hover = this_choice_building
+            self.placer_manager.choice_hover_event = None
         if this_choice.is_event_choice:
             # decrement resources
             this_choice: Event = this_choice
             this_choice_event = this_choice.event
             self.placer_manager.choice_hover_event = this_choice_event
-            
+            self.placer_manager.choice_hover = this_choice_building = None
     def simulate(self):
         self.cooldown -= float(1/30)
         self.press_current_cooldown -= float(1/30)
