@@ -126,7 +126,7 @@ class Point():
 
 class Particle_effect(Effect):
     def __init__(self, object_assigned_to, max_time, starting_offset_x=0, starting_offset_y=0, relative=True,
-                 particle_number=0, particle_speed=0,particle_color=0) -> None:
+                 particle_number=0, particle_speed=0,particle_color=0, speed_randomizer =0.0) -> None:
         super().__init__(object_assigned_to, max_time, starting_offset_x, starting_offset_y, relative)
         # create particles
         self.x = object_assigned_to.x
@@ -141,16 +141,17 @@ class Particle_effect(Effect):
             vx = random.random() * numpy.sign(random.random() - 0.5)
             vy = random.random() * numpy.sign(random.random() - 0.5)
             v_normalized = normalize([vx, vy])
-            particle = (px, py, v_normalized[0], v_normalized[1])
+            particle = (px, py, v_normalized[0], v_normalized[1], particle_speed - random.random()*speed_randomizer)
             self.particle_list.append(particle)
 
     def calculate_offsets(self):
         for particle in self.particle_list[:]:
             print(particle)
-            n_particle = (float(particle[0])+float(particle[2])*self.particle_speed,
-                          float(particle[1])+float(particle[3])*self.particle_speed,
+            n_particle = (float(particle[0])+float(particle[2])*particle[4],
+                          float(particle[1])+float(particle[3])*particle[4],
                           particle[2],
-                          particle[3]) 
+                          particle[3],
+                          particle[4]) 
             self.particle_list.remove(particle)
             self.particle_list.append(n_particle)
 

@@ -14,10 +14,14 @@ RANDOM IDEAS:
 + cleric heal
 + builder repairs buildings
 
-
 4. Rarity animation
 - play animation on event getting
 - tiles coloring constant until selected?
+- particle randomized speed and death  time
+
++ resource add hovers up in time
++ resource up draws also the resource icon
++ text color based on resource rarity
 
 
 6. Mouse controls

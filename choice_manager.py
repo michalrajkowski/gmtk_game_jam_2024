@@ -300,13 +300,13 @@ class ChoiceManager:
             rarity = self.this_choice_rarity
             p = Point(choice_draw_x, choice_draw_y)
             if rarity==EventRarity.COMMON:
-                pe = Particle_effect(p, max_time=0.5, particle_number=10, particle_color=7, particle_speed=0.6)
+                pe = Particle_effect(p, max_time=0.5, particle_number=10, particle_color=7, particle_speed=0.6, speed_randomizer=0.5)
                 self.animation_manager.add_effect(pe)
             elif rarity==EventRarity.RARE:
-                pe = Particle_effect(p, max_time=0.6, particle_number=40, particle_color=5, particle_speed=0.7)
+                pe = Particle_effect(p, max_time=0.6, particle_number=40, particle_color=5, particle_speed=0.7, speed_randomizer=0.5)
                 self.animation_manager.add_effect(pe)
             else:
-                pe = Particle_effect(p, max_time=0.7, particle_number=100, particle_color=10, particle_speed=0.9)
+                pe = Particle_effect(p, max_time=0.7, particle_number=100, particle_color=10, particle_speed=0.9, speed_randomizer=0.5)
                 self.animation_manager.add_effect(pe)
 
                 
