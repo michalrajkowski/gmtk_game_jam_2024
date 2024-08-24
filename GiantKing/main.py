@@ -163,6 +163,9 @@ class App:
 
         pyxel.rect(HOW_TO_PLAY_BUTTON[0],HOW_TO_PLAY_BUTTON[1],HOW_TO_PLAY_BUTTON[2],HOW_TO_PLAY_BUTTON[3], 7)
         pyxel.blt(HOW_TO_PLAY_BUTTON[0],HOW_TO_PLAY_BUTTON[1],2,0,16*10,HOW_TO_PLAY_BUTTON[2],HOW_TO_PLAY_BUTTON[3])
+
+        # Draw game version
+        pyxel.text(210, 240, "Version:\n2024.08.24", 7)
         pass
     def draw_lose_screen(self):
         # draw play button
