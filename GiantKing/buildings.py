@@ -615,12 +615,11 @@ class Wolf(MovingUnit):
         # drop meat and leather
         from event_manager import DrawResource_event
         random_chance = random.random()
+        self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
+        draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1, event_source=self)
+        self.event_manager.add_event(draw_resource_event)
+        # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
         if random_chance > 0.5:
-            self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
-            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1, event_source=self)
-            self.event_manager.add_event(draw_resource_event)
-            # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
-        else:
             self.resource_manager.increment_resource(ResourcesIndex.LEATHER, 1)
             draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.LEATHER, 1, event_source=self)
             self.event_manager.add_event(draw_resource_event)

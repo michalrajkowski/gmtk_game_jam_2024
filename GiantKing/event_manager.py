@@ -238,23 +238,25 @@ class DrawText_event(Event):
     
 
 class DrawResource_event(Event):
-    def __init__(self, tile, resource : ResourcesIndex, amount ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+    def __init__(self, tile, resource : ResourcesIndex, amount ,x=0, y=0, duration=0, max_action_cooldown=1, draw_event=False, event_source=None):
         super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.tile = tile
         self.resource = resource
         self.amount = amount
     def on_start(self):
         super().on_start()
-        # Look for simmilar events in event list
-        # Get the greatest duration from them
-        min_duration = -0.4
         for event in self.event_manager.event_list:
             if event.event_source == None:
                 continue
-            if event.event_source == self.event_source:
-                min_duration = max(min_duration, event.duration+0.4)
+            if event.event_source != self.event_source:
+                continue
+            if event.first_tick == False:
+                continue
+            self.duration+=0.4
+        # Look for simmilar events in event list
+        # Get the greatest duration from them
         # this_duration should be the greatest duration + 0.2
-        self.duration=min_duration
+        print(self.duration)
     def on_end(self):
         resource_name = resource_names[self.resource]
         resource_string = f"+{self.amount}{resource_name}"
