@@ -109,8 +109,8 @@ class ChoiceManager:
         self.press_max_cooldown = 0.01
         self.press_current_cooldown = 0.0
 
-        self.legendary_chance = 80#1
-        self.rare_chance = 80#5
+        self.legendary_chance = 1
+        self.rare_chance = 5
         self.common_chance = 80
 
         self.this_choice_rarity = None

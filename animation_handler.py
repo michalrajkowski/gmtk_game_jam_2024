@@ -2,6 +2,7 @@ import pyxel
 import math
 import random
 import numpy
+from resource_manager import ResourcesIndex, resource_mini_icons 
 
 # Renders sprites with their animations
 # Makes sure that there is not many animations at the same time for sprite
@@ -92,7 +93,7 @@ class MeleeAttackAnimation(ObjectAnimation):
 # Has the layer, which tells the order of drawing them
 # Attack event spawns animation and is tied to it?
 class Effect:
-    def __init__(self, object_assigned_to, max_time, starting_offset_x=0, starting_offset_y=0, relative=True) -> None:
+    def __init__(self, object_assigned_to, max_time, starting_offset_x=0, starting_offset_y=0, relative=True, layer=2) -> None:
         self.object_assigned_to = object_assigned_to
         self.animation_handler = None
         self.starting_offset_x = starting_offset_x
@@ -101,6 +102,8 @@ class Effect:
         self.y = object_assigned_to.y*16
         self.current_time = 0.0
         self.max_time = max_time
+        self.layer = layer
+        self.relative=relative
 
     def simulate(self):
         self.current_time += (1/30)
@@ -146,7 +149,6 @@ class Particle_effect(Effect):
 
     def calculate_offsets(self):
         for particle in self.particle_list[:]:
-            print(particle)
             n_particle = (float(particle[0])+float(particle[2])*particle[4],
                           float(particle[1])+float(particle[3])*particle[4],
                           particle[2],
@@ -159,6 +161,27 @@ class Particle_effect(Effect):
         for particle in self.particle_list[:]:
             pyxel.pset(int(particle[0]),int(particle[1]),self.particle_color)
 
+class Text_effect(Effect):
+    def __init__(self, object_assigned_to, max_time, text="", color=7, image_icon = None,image_size=(8,8), starting_offset_x=0, starting_offset_y=0, relative=True, layer=2) -> None:
+        super().__init__(object_assigned_to, max_time, starting_offset_x, starting_offset_y, relative, layer)
+        self.x = object_assigned_to.x
+        self.y = object_assigned_to.y
+        self.text = text
+        self.color = color
+        self.image_icon = image_icon
+        self.image_size = image_size
+        self.max_y = self.y - 6
+
+    def calculate_offsets(self):
+        self.y = lerp(self.object_assigned_to.y, self.max_y,self.current_time/self.max_time)
+
+    def draw(self):
+        # Draw text
+        # Draw image on its left?
+        pyxel.text(self.x, self.y, self.text, self.color)
+        if self.image_icon == None:
+            return
+        pyxel.blt(self.x - self.image_size[0] - 1, self.y, 0, self.image_icon[0], self.image_icon[1], self.image_size[0], self.image_size[1], 0)
     # particle animation is a splash of particle moving into random direction and lifetime from origin points?
 
 class Hit_Effect(Effect):
@@ -198,14 +221,15 @@ class AnimationHandler:
     def __init__(self) -> None:
         pass
         self.animations_list = []
-        self.effects_list = []
+        self.effect_list_layered = {0: [], 1:[], 2: []}
         self.building_manager = None
     
     def simulate_all(self):
         for animation in self.animations_list[:]:
             animation.simulate()
-        for effect in self.effects_list[:]:
-            effect.simulate()
+        for effect_list in self.effect_list_layered.values():
+            for effect in effect_list:
+                effect.simulate()
         pass
 
     def find_object_animation(self,object):
@@ -230,9 +254,11 @@ class AnimationHandler:
             draw_x = 16*tile_x + offset_x
             draw_y = 16*tile_y + offset_y
             pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, 16, 16,0)
-        for effect in self.effects_list:
+    
+    def draw_effects(self,layer):
+        effects_of_layer_list = self.effect_list_layered[layer]
+        for effect in effects_of_layer_list:
             effect.draw()
-
 
     def calculate_objects_offsets():
         pass
@@ -246,10 +272,12 @@ class AnimationHandler:
         animation.animation_handler = self
 
     def delete_effect(self, effect):
-        self.effects_list.remove(effect)
+        effect_layer = effect.layer
+        self.effect_list_layered[effect_layer].remove(effect)
 
     def add_effect(self, effect):
-        self.effects_list.append(effect)
+        effect_layer = effect.layer
+        self.effect_list_layered[effect_layer].append(effect)
         effect.animation_handler = self
 
     def draw_sprite(self):

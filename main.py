@@ -234,19 +234,27 @@ class App:
         
     def draw_game(self):
         self.draw_tile_map()
+        self.animation_handler.draw_effects(0)
+
         self.mouse_hover_tile_select()
         self.draw_resources()
-        self.wave_manager.draw()
         self.choice_manager.draw_choice_pane()
         self.animation_handler.draw_all()
+        self.animation_handler.draw_effects(1)
+
         self.draw_buildings()
         self.placer_manager.draw_selected()
+        
         self.draw_hp_bar()
 
         self.descriptions_manager.draw_selected_description()
         self.event_manager.draw_events()
         self.particle_manager.render_particles()
         
+        self.animation_handler.draw_effects(2)
+
+        self.wave_manager.draw()
+
     def game_reset(self):
         # generate all managers
         

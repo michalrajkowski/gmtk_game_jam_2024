@@ -19,7 +19,8 @@ RANDOM IDEAS:
 - tiles coloring constant until selected?
 - particle randomized speed and death  time
 
-+ resource add hovers up in time
+====
+> + resource add hovers up in time
 + resource up draws also the resource icon
 + text color based on resource rarity
 

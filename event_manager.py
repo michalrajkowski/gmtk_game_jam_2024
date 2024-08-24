@@ -2,8 +2,9 @@ import pyxel
 from buildings import Goblin, Tower, Necromancer
 from building_manager import BuildingManager
 import random
-from resource_manager import ResourcesIndex, resource_names, resource_sprites
+from resource_manager import ResourcesIndex, resource_names, resource_sprites, resource_mini_icons
 from enum import Enum
+from animation_handler import Point
 class EventRarity(Enum):
     COMMON = 0
     RARE = 1
@@ -215,6 +216,43 @@ class DamageHit_event(Event):
         hit_effect = Hit_Effect(self.object_original, self.duration) # We multiply by 1.5 coz during 66% animation time we attack
         self.animation_handler: AnimationHandler = self.animation_handler
         self.animation_handler.add_effect(hit_effect)
+
+class DrawText_event(Event):
+    def __init__(self,object_assigned_to=None, text="", color=7, image_icon = None, image_size=(8,8)  ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        if object_assigned_to == None:
+            object_assigned_to = Point(10,10)    
+        self.object_assigned_to = object_assigned_to
+        self.text = text
+        self.color = color
+        self.image_icon = image_icon
+        self.image_size = image_size
+
+    def on_start(self):
+        from animation_handler import Text_effect
+        super().on_start()
+        text_effect = Text_effect(self.object_assigned_to, self.duration,self.text, self.color,self.image_icon, self.image_size)
+        self.animation_handler.add_effect(text_effect)
+        self.duration = -1
+    
+
+class DrawResource_event(Event):
+    def __init__(self, tile, resource : ResourcesIndex, amount ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+        self.tile = tile
+        self.resource = resource
+        self.amount = amount
+    def on_start(self):
+        super().on_start()
+        self.duration=-1
+    def on_end(self):
+        resource_name = resource_names[self.resource]
+        resource_string = f"+{self.amount}{resource_name}"
+        resource_icon = resource_mini_icons[self.resource]
+        point = Point(self.tile[0]*16, self.tile[1]*16)
+        text_event = DrawText_event(point, resource_string, image_icon=resource_icon, image_size=(8,8))
+        self.event_manager.add_event(text_event)
+        return super().on_end()
 
 class EventManager:
     def __init__(self):
