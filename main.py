@@ -352,7 +352,7 @@ class App:
                 rect_w = (2*(building_being_placed.radius) +1)*16
                 rect_h = (2*(building_being_placed.radius) +1)*16
                 pyxel.rectb(rect_x, rect_y, rect_w, rect_h, 7)
-        if pyxel.btn(pyxel.KEY_CTRL):
+        if pyxel.btn(pyxel.KEY_CTRL) or pyxel.btn(pyxel.KEY_SPACE):
             if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit and self.placer_manager.selected_object.player_faction:
                 if (self.building_manager.try_to_move(tile_x, tile_y)):
                     (sprite_u, sprite_v) = (80,16)
@@ -391,7 +391,7 @@ class App:
                 return
             self.building_manager.build_building(self.placer_manager.placing_object, tile_x, tile_y)
             self.placer_manager.reset()
-        elif pyxel.btn(pyxel.KEY_CTRL):
+        elif pyxel.btn(pyxel.KEY_CTRL) or pyxel.btn(pyxel.KEY_SPACE):
             # try to move unit
             if self.placer_manager.selected_object != None and self.placer_manager.selected_object.is_moving_unit and self.placer_manager.selected_object.player_faction:
                 # Try to move
