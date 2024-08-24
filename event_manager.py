@@ -18,7 +18,7 @@ class EventRarity(Enum):
         raise ValueError(f"Invalid value: {value}")
 
 class Event:
-    def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False):
+    def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False, event_source=None):
         self.event_manager = None
         self.building_manager = None
         self.resource_manager = None
@@ -35,6 +35,7 @@ class Event:
         self.name = "MISSING!"
         self.description = ""
         self.first_tick = True
+        self.event_source = event_source
 
     
     def placing_condition(self):
@@ -76,16 +77,16 @@ class Event:
         pyxel.blt(draw_x, draw_y, 0, sprite_u, sprite_v, 16, 16, 0)
 
 class Event_A(Event):
-    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.icon = (16,80)
         self.duration = 3.0
         self.max_duration = self.duration
         self.name = "AAAA"
 
 class Event_B(Event):
-    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.icon = (32,80)
         self.duration = 3.0
         self.max_duration = self.duration
@@ -93,8 +94,8 @@ class Event_B(Event):
         self.name = "BBBB"
 
 class Resource_Event(Event):
-    def __init__(self, resource_index:ResourcesIndex, resource_amount=1,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, resource_index:ResourcesIndex, resource_amount=1,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.resource_index = resource_index
         self.resource_amount = resource_amount
         self.icon = resource_sprites[resource_index]
@@ -110,8 +111,8 @@ class Resource_Event(Event):
 
 
 class Goblin_Army(Event):
-    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.icon = (112,64)
         self.duration = 20.0
         self.max_duration = self.duration
@@ -136,8 +137,8 @@ class Goblin_Army(Event):
         # Spawn goblin
 
 class Peacefull_Day(Event):
-    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.icon = (112,80)
         self.duration = 20.0
         self.max_duration = self.duration
@@ -151,8 +152,8 @@ class Peacefull_Day(Event):
         pass
 
 class Undead_Army(Event):
-    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.icon = (64,80)
         self.duration = 20.0
         self.max_duration = self.duration
@@ -177,8 +178,8 @@ class Undead_Army(Event):
                     break
 
 class MeleeAttack_Event(Event):
-    def __init__(self, object_original, object_target, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, object_original, object_target, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.object_original = object_original
         self.object_target = object_target
     
@@ -205,8 +206,8 @@ class MeleeAttack_Event(Event):
         self.object_original.deal_damage(self.object_target, self.object_original.attack_damage)
 
 class DamageHit_event(Event):
-    def __init__(self, object_original, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, object_original, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.object_original = object_original
     
     def on_start(self):
@@ -218,8 +219,8 @@ class DamageHit_event(Event):
         self.animation_handler.add_effect(hit_effect)
 
 class DrawText_event(Event):
-    def __init__(self,object_assigned_to=None, text="", color=7, image_icon = None, image_size=(8,8)  ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self,object_assigned_to=None, text="", color=7, image_icon = None, image_size=(8,8)  ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         if object_assigned_to == None:
             object_assigned_to = Point(10,10)    
         self.object_assigned_to = object_assigned_to
@@ -237,14 +238,23 @@ class DrawText_event(Event):
     
 
 class DrawResource_event(Event):
-    def __init__(self, tile, resource : ResourcesIndex, amount ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False):
-        super().__init__(x, y, duration, max_action_cooldown, draw_event)
+    def __init__(self, tile, resource : ResourcesIndex, amount ,x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.tile = tile
         self.resource = resource
         self.amount = amount
     def on_start(self):
         super().on_start()
-        self.duration=-1
+        # Look for simmilar events in event list
+        # Get the greatest duration from them
+        min_duration = -0.4
+        for event in self.event_manager.event_list:
+            if event.event_source == None:
+                continue
+            if event.event_source == self.event_source:
+                min_duration = max(min_duration, event.duration+0.4)
+        # this_duration should be the greatest duration + 0.2
+        self.duration=min_duration
     def on_end(self):
         resource_name = resource_names[self.resource]
         resource_string = f"+{self.amount}{resource_name}"

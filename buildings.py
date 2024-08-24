@@ -197,7 +197,7 @@ class House(Building):
             if TileIndex.from_value(i) in [TileIndex.FOREST, TileIndex.MONTAIN, TileIndex.RIVER]:
                 # gather resource, return
                 self.resource_manager.increment_resource(resources_from_tiles[TileIndex.from_value(i)], 1)
-                draw_resource_event = DrawResource_event((self.x, self.y), resources_from_tiles[TileIndex.from_value(i)], 1)
+                draw_resource_event = DrawResource_event((self.x, self.y), resources_from_tiles[TileIndex.from_value(i)], 1, event_source=self)
                 self.event_manager.add_event(draw_resource_event)
                 #self.particle_manager.add_particle(f"+1{resource_names[resources_from_tiles[TileIndex.from_value(i)]]}", (self.x, self.y))
                 return
@@ -232,7 +232,7 @@ class Field(Building):
 
     def do_building_action(self):
         from event_manager import DrawResource_event
-        draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1)
+        draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1, event_source=self)
         self.event_manager.add_event(draw_resource_event)
         self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
         #self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
@@ -263,7 +263,7 @@ class Lumberjack(Building):
         if forests_number > 0:
             self.resource_manager.increment_resource(ResourcesIndex.WOOD, 1)
             from event_manager import DrawResource_event
-            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.WOOD, 1)
+            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.WOOD, 1, event_source=self)
             self.event_manager.add_event(draw_resource_event)
             # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.WOOD]}", (self.x, self.y))
         # Reduce cooldown based on forests number:
@@ -294,7 +294,7 @@ class Mine(Building):
         random_resource = get_weighted_result(weigths, results)
         self.resource_manager.increment_resource(random_resource, 1)
         from event_manager import DrawResource_event
-        draw_resource_event = DrawResource_event((self.x, self.y), random_resource, 1)
+        draw_resource_event = DrawResource_event((self.x, self.y), random_resource, 1, event_source=self)
         self.event_manager.add_event(draw_resource_event)
         # self.particle_manager.add_particle(f"+1{resource_names[random_resource]}", (self.x, self.y))
 
@@ -318,7 +318,7 @@ class Smelter(Building):
         # Gather 1 Stone
         self.resource_manager.increment_resource(ResourcesIndex.IRON, 1)
         from event_manager import DrawResource_event
-        draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.IRON, 1)
+        draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.IRON, 1, event_source=self)
         self.event_manager.add_event(draw_resource_event)
         # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.IRON]}", (self.x, self.y))
 
@@ -334,14 +334,15 @@ class Fisherman_Hut(Building):
         self.max_cooldown = 10.0
         self.current_cooldown = self.max_cooldown
 
-        self.food_chance = 200
+        self.food_chance = 100
         self.gold_fish_chance = 1
         self.treasure_chance = 1
 
         self.description = "- gathers food from lakes\n- has small chance to fish goldfish or treasure\n- number of ponds increases his efficiency"
 
     def do_building_action(self):
-        from event_manager import DrawResource_event
+        from event_manager import DrawResource_event, DrawText_event
+        from animation_handler import Point
         # Try to gather random resource from neibhour stuff
         neighbour_fields = self.tile_manager.get_neigbour_tiles(self.x, self.y, self.radius)
         random.shuffle(neighbour_fields)
@@ -358,44 +359,50 @@ class Fisherman_Hut(Building):
         random_result = get_weighted_result(weigths, results)
         if random_result == "food":
             self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
-            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1)
+            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1, event_source=self)
             self.event_manager.add_event(draw_resource_event)
             # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
         elif random_result == "goldfish":
+            text_event = DrawText_event(Point(16*self.x, 16*self.y), "GOLDFISH", 10, event_source=self)
+            self.event_manager.add_event(text_event)
+
             self.resource_manager.increment_resource(ResourcesIndex.GOLD, 1)
-            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.GOLD, 1)
+            
+            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.GOLD, 1, event_source=self)
             self.event_manager.add_event(draw_resource_event)
             # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.GOLD]}", (self.x, self.y))
         elif random_result == "treasure":
             # get random resources?
+            text_event = DrawText_event(Point(16*self.x, 16*self.y), "TREASURE", 10, event_source=self)
+            self.event_manager.add_event(text_event)
             random_amount = random.randint(0,5)
             if random_amount > 0:
                 self.resource_manager.increment_resource(ResourcesIndex.WOOD, 1)
-                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.WOOD, 1)
+                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.WOOD, 1, event_source=self)
                 self.event_manager.add_event(draw_resource_event)
                 # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.WOOD]}", (self.x, self.y))
             random_amount = random.randint(0,5)
             if random_amount > 0:
                 self.resource_manager.increment_resource(ResourcesIndex.STONE, 1)
-                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.STONE, 1)
+                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.STONE, 1, event_source=self)
                 self.event_manager.add_event(draw_resource_event)
                 # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.STONE]}", (self.x, self.y))
             random_amount = random.randint(0,3)
             if random_amount > 0:
                 self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
-                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1)
+                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1, event_source=self)
                 self.event_manager.add_event(draw_resource_event)
                 # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
             random_amount = random.randint(0,1)
             if random_amount > 0:
                 self.resource_manager.increment_resource(ResourcesIndex.IRON, 1)
-                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.IRON, 1)
+                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.IRON, 1, event_source=self)
                 self.event_manager.add_event(draw_resource_event)
                 # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.IRON]}", (self.x, self.y))
             random_amount = random.randint(0,1)
             if random_amount > 0:
                 self.resource_manager.increment_resource(ResourcesIndex.LEATHER, 1)
-                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.IRON, 1)
+                draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.LEATHER, 1, event_source=self)
                 self.event_manager.add_event(draw_resource_event)
                 # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.LEATHER]}", (self.x, self.y))
         
@@ -610,12 +617,12 @@ class Wolf(MovingUnit):
         random_chance = random.random()
         if random_chance > 0.5:
             self.resource_manager.increment_resource(ResourcesIndex.FOOD, 1)
-            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1)
+            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.FOOD, 1, event_source=self)
             self.event_manager.add_event(draw_resource_event)
             # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.FOOD]}", (self.x, self.y))
         else:
             self.resource_manager.increment_resource(ResourcesIndex.LEATHER, 1)
-            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.LEATHER, 1)
+            draw_resource_event = DrawResource_event((self.x, self.y), ResourcesIndex.LEATHER, 1, event_source=self)
             self.event_manager.add_event(draw_resource_event)
             # self.particle_manager.add_particle(f"+1{resource_names[ResourcesIndex.LEATHER]}", (self.x, self.y))
 
