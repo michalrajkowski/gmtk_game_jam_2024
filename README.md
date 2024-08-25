@@ -1,6 +1,6 @@
 # GMTK Game Jam 2024 entry
 Check out the jam page: [GMTK Game Jam](https://itch.io/jam/gmtk-2024)
-You can play the game directly by pressing [THIS LINK](https://kitao.github.io/pyxel/wasm/launcher/?play=michalrajkowski.gmtk_game_jam_2024.GiantKing&gamepad=enabled&packages=numpy)
+You can play the game directly by pressing [THIS LINK](https://kitao.github.io/pyxel/wasm/launcher/?play=michalrajkowski.gmtk_game_jam_2024.GiantKing&gamepad=enabled&packages=numpy,playsound)
 
 *Untitle project*
 My attempt to create a game in about 1 day.
