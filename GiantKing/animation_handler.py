@@ -3,7 +3,7 @@ import math
 import random
 import numpy
 from resource_manager import ResourcesIndex, resource_mini_icons 
-from playsound import playsound
+# from playsound import playsound
 
 # Renders sprites with their animations
 # Makes sure that there is not many animations at the same time for sprite
@@ -223,8 +223,8 @@ class Hit_Effect(Effect):
         
     def on_create(self):
         super().on_create()
-        print("Sound played!")
-        playsound('sounds/hitHurt.wav', block=False)
+        # print("Sound played!")
+        # playsound('sounds/hitHurt.wav', block=False)
 
 
 
