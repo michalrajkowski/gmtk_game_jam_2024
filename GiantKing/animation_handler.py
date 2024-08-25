@@ -3,6 +3,7 @@ import math
 import random
 import numpy
 from resource_manager import ResourcesIndex, resource_mini_icons 
+from playsound import playsound
 
 # Renders sprites with their animations
 # Makes sure that there is not many animations at the same time for sprite
@@ -104,13 +105,20 @@ class Effect:
         self.max_time = max_time
         self.layer = layer
         self.relative=relative
+        self.first_simulate = True
 
     def simulate(self):
+        if self.first_simulate:
+            self.first_simulate = False
+            self.on_create()
         self.current_time += (1/30)
         if self.current_time >= self.max_time:
             self.delete_effect()
             return
         self.calculate_offsets()
+
+    def on_create(self):
+        pass
 
     def calculate_offsets(self):
         pass
@@ -213,6 +221,10 @@ class Hit_Effect(Effect):
                     continue
                 pyxel.pset(draw_x+i, draw_y+j,7)
         
+    def on_create(self):
+        super().on_create()
+        print("Sound played!")
+        playsound('sounds/hitHurt.wav', block=False)
 
 
 

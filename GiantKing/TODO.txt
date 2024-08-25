@@ -4,10 +4,22 @@ TODO: show increasement amount next to resources
 
 FEATURES LIST:
 3. Day-night cycle
+    - Day then night
+        - DAY:
+            - monsters escape/die/lose hp from sun?
+        - NIGHT:
+            - monsters spawn
+            - they raid 
+    - Positive and negative events
+    - comunicate that new "phase started?"
+    - music change?
+    - visuals change?
 4. Rarity animation
 5. Particle effect - text moves up
 6. Better mouse controls
 7. Sort effects by layers
+8. Sounds
+9. 
 
 RANDOM IDEAS:
 + special "circular" attack animation for barbarian unit?
@@ -15,7 +27,6 @@ RANDOM IDEAS:
 + builder repairs buildings
 
 4. Rarity animation
-- play animation on event getting
 - tiles coloring constant until selected?
 - particle randomized speed and death  time
 
