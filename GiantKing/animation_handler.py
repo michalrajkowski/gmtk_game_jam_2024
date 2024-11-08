@@ -1,7 +1,6 @@
 import pyxel
 import math
 import random
-import numpy
 from resource_manager import ResourcesIndex, resource_mini_icons 
 # from playsound import playsound
 
@@ -9,6 +8,9 @@ from resource_manager import ResourcesIndex, resource_mini_icons
 # Makes sure that there is not many animations at the same time for sprite
 
 # The movement / calculation of offset of things on the screen
+def sign(x):
+    return (x > 0) - (x < 0)
+
 def normalize(vector):
     magnitude = math.sqrt(sum(comp**2 for comp in vector))
     if magnitude == 0:
@@ -149,8 +151,8 @@ class Particle_effect(Effect):
         for i in range(self.particle_number):
             px = self.x + 8
             py = self.y + 8
-            vx = random.random() * numpy.sign(random.random() - 0.5)
-            vy = random.random() * numpy.sign(random.random() - 0.5)
+            vx = random.random() * sign(random.random() - 0.5)
+            vy = random.random() * sign(random.random() - 0.5)
             v_normalized = normalize([vx, vy])
             particle = (px, py, v_normalized[0], v_normalized[1], particle_speed - random.random()*speed_randomizer)
             self.particle_list.append(particle)
