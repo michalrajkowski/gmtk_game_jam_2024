@@ -104,7 +104,7 @@ class ChoiceManager:
         self.cooldown = 5.0
         self.max_cooldown = 5.0
         self.choice_queue = []
-        self.max_choice_queue = 20
+        self.max_choice_queue = 4
         self.extra_choices = []
         self.press_max_cooldown = 0.01
         self.press_current_cooldown = 0.0

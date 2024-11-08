@@ -19,7 +19,6 @@ class GameManager:
     _instance = None
     game_state = GameState.MENU
     how_page = 0
-    popup = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
