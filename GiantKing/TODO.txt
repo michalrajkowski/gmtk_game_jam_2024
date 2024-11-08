@@ -14,6 +14,10 @@ FEATURES LIST:
     - comunicate that new "phase started?"
     - music change?
     - visuals change?
+    - rolling art with description?
+        - game pauses?
+        - art rolls in
+        - press to play?
 4. Rarity animation
 5. Particle effect - text moves up
 6. Better mouse controls

@@ -9,11 +9,10 @@ from tile_manager import TileManager, TileIndex, tile_sprites
 from descriptions_manager import DescriptionsManager
 from buildings import Building
 from particles_manager import ParticleManager
-from event_manager import EventManager, Event
+from event_manager import EventManager, Event, TimePhase
 from wave_manager import WaveManager
 from game_manager import GameManager, GameState
 from animation_handler import AnimationHandler
-
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 256
 
@@ -40,6 +39,14 @@ GO_TO_MENU_BUTTON = (4*16, 7*16, 16*4,16*2)
 RESUME_BUTTON = (4*16,4*16,16*4,16*2)
 
 NEXT_BUTTON = (0,0,16*4,16*2)
+
+# POPUP
+POPUP_BOX = (2*16, 2*16)
+POPUP_ART = (POPUP_BOX[0]-1, POPUP_BOX[1]-1, 8*16+2, 3*16+2)
+POPUP_NAME_BOX = (POPUP_BOX[0]-1, POPUP_ART[1]+POPUP_ART[3], 8*16+2, 16+2)
+POPUP_DESCRIPTION_BOX = (POPUP_NAME_BOX[0], POPUP_NAME_BOX[1]+POPUP_NAME_BOX[3], 8*16, 3*16)
+# MAYBE ADD MULTIPLE BUTTONS?
+POPUP_OK_BUTTON = (POPUP_BOX[0]+1.5*16, POPUP_DESCRIPTION_BOX[1]+POPUP_DESCRIPTION_BOX[3], 16, 16)
 
 class TileMap:
     def __init__(self):
@@ -92,13 +99,17 @@ class App:
             return
 
         if (self.game_manager.game_state == GameState.GAME):
-            self.building_manager.simulate()
-            self.choice_manager.simulate()
-            self.event_manager.simulate()
-            self.wave_manager.simulate()    
-            self.animation_handler.simulate_all()    
-            if pyxel.btnp(pyxel.KEY_P) or pyxel.btnp(pyxel.KEY_SPACE):
-                self.game_manager.game_state = GameState.PAUSE
+            if self.game_manager.popup != None:
+                # Draw popup
+                pass
+            else:
+                self.building_manager.simulate()
+                self.choice_manager.simulate()
+                self.event_manager.simulate()
+                self.wave_manager.simulate()    
+                self.animation_handler.simulate_all()    
+                if pyxel.btnp(pyxel.KEY_P) or pyxel.btnp(pyxel.KEY_SPACE):
+                    self.game_manager.game_state = GameState.PAUSE
     def draw(self):
         pyxel.cls(0)
         
@@ -187,6 +198,47 @@ class App:
 
         if (self.is_in_button(RESUME_BUTTON,mouse_x, mouse_y)):
             self.game_manager.game_state = GameState.GAME
+
+    def draw_popup(self):
+        event_color = 10 if self.game_manager.popup.time_phase == TimePhase.DAY else 6
+        
+        pyxel.rect(POPUP_BOX[0], POPUP_BOX[1], POPUP_DESCRIPTION_BOX[2], POPUP_DESCRIPTION_BOX[1]+POPUP_DESCRIPTION_BOX[3]-POPUP_BOX[1], 0)
+        pyxel.rectb(POPUP_ART[0], POPUP_ART[1], POPUP_ART[2], POPUP_ART[3], event_color)
+        pyxel.rectb(POPUP_NAME_BOX[0], POPUP_NAME_BOX[1], POPUP_NAME_BOX[2], POPUP_NAME_BOX[3], event_color)
+        pyxel.rectb(POPUP_DESCRIPTION_BOX[0], POPUP_DESCRIPTION_BOX[1], POPUP_DESCRIPTION_BOX[2], POPUP_DESCRIPTION_BOX[3], event_color)
+        pyxel.rectb(POPUP_OK_BUTTON[0], POPUP_OK_BUTTON[1], POPUP_OK_BUTTON[2], POPUP_OK_BUTTON[3], event_color)
+        
+        # Event color
+
+        # Load Art
+        pyxel.blt(POPUP_ART[0]+1+2*16, POPUP_ART[1]+1,1, 0,0, 4*16, 3*16)
+        
+        # Draw giga text
+        pyxel.rect(12*16,14*16,4*16,16,0)
+        pyxel.text(12*16,14*16, self.game_manager.popup.name,event_color)
+        # Draw big text
+        for j in range(0, 16):
+            for i in range(0, 4*16):
+                # Get small text pixel color
+                small_text_pixel_color = pyxel.pget(i+12*16, j+14*16)
+                if small_text_pixel_color == 0:
+                    continue
+                # Draw big pixel:
+                pyxel.rect(POPUP_NAME_BOX[0]+3+i*2, POPUP_NAME_BOX[1]+4+j*2, 2, 2, event_color)
+        pyxel.text(POPUP_DESCRIPTION_BOX[0]+1,POPUP_DESCRIPTION_BOX[1]+1,self.game_manager.popup.description,7)
+        """POPUP_BOX = (2*16, 2*16)
+        POPUP_ART = (POPUP_BOX[0], POPUP_BOX[1], 4*16, 3*16)
+        POPUP_NAME_BOX = (POPUP_BOX[0], POPUP_ART[1]+POPUP_ART[3], 4*16, 16)
+        POPUP_DESCRIPTION_BOX = (POPUP_NAME_BOX[0], POPUP_NAME_BOX[1]+POPUP_NAME_BOX[3], 4*16, 3*16)
+        # MAYBE ADD MULTIPLE BUTTONS?
+        POPUP_OK_BUTTON = (POPUP_BOX[0]+1.5*16, POPUP_DESCRIPTION_BOX[1]+POPUP_DESCRIPTION_BOX[3], 16, 16)
+        """
+        if not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            return
+        #self.game_manager.popup = None
+        (mouse_x, mouse_y) = (pyxel.mouse_x,pyxel.mouse_y)
+        if (self.is_in_button(POPUP_OK_BUTTON,mouse_x, mouse_y)):
+            self.game_manager.popup = None
     
     def is_in_rect(self,o_x, o_y ,x, y, w, h):
         if (x<=o_x<=x+w and y<=o_y<=y+h):
@@ -256,6 +308,9 @@ class App:
         
         self.animation_handler.draw_effects(2)
 
+        if self.game_manager.popup != None:
+            self.draw_popup()
+
         self.wave_manager.draw()
 
     def game_reset(self):
@@ -294,6 +349,8 @@ class App:
         self.event_manager.animation_handler = self.animation_handler
 
         self.animation_handler.building_manager = self.building_manager
+        
+        self.wave_manager.game_manager = self.game_manager
         # post inits
         self.building_manager.post_init()
 

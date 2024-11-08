@@ -5,6 +5,12 @@ import random
 from resource_manager import ResourcesIndex, resource_names, resource_sprites, resource_mini_icons
 from enum import Enum
 from animation_handler import Point
+class TimePhase(Enum):
+    DAY = 0
+    NIGHT = 1
+    NONE = 2
+
+
 class EventRarity(Enum):
     COMMON = 0
     RARE = 1
@@ -18,7 +24,7 @@ class EventRarity(Enum):
         raise ValueError(f"Invalid value: {value}")
 
 class Event:
-    def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False, event_source=None):
+    def __init__(self, x=0, y=0, duration = 1.0, max_action_cooldown = 1.0, draw_event=False, event_source=None, time_phase=None):
         self.event_manager = None
         self.building_manager = None
         self.resource_manager = None
@@ -36,6 +42,7 @@ class Event:
         self.description = ""
         self.first_tick = True
         self.event_source = event_source
+        self.time_phase = time_phase if time_phase!=None else TimePhase.NONE
 
     
     def placing_condition(self):
@@ -140,13 +147,31 @@ class Peacefull_Day(Event):
     def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
         super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
         self.icon = (112,80)
-        self.duration = 20.0
+        self.duration = 1.0#20.0
         self.max_duration = self.duration
         self.max_action_cooldown = 1.0
         self.action_cooldown = self.max_action_cooldown
         self.goblin_army_spawn_duration = 15.0
         self.event_art_path = "assets/day.jpg"
         self.name = "Peacefull Day"
+        self.description = "The night has ended\nSunlight will be thier doom!"
+        self.time_phase = TimePhase.DAY
+
+    def do_event_action(self):
+        pass
+
+class Peacefull_Night(Event):
+    def __init__(self, x=0, y=0, duration=1, max_action_cooldown=1, draw_event=False, event_source=None):
+        super().__init__(x, y, duration, max_action_cooldown, draw_event, event_source)
+        self.icon = (128,80)
+        self.duration = 1.0#20.0
+        self.max_duration = self.duration
+        self.max_action_cooldown = 1.0
+        self.action_cooldown = self.max_action_cooldown
+        self.goblin_army_spawn_duration = 15.0
+        self.event_art_path = "assets/day.jpg"
+        self.name = "Peacefull Night"
+        self.time_phase = TimePhase.NIGHT
 
     def do_event_action(self):
         pass

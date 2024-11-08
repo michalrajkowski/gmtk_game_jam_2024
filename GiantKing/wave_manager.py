@@ -1,16 +1,22 @@
-from event_manager import Event, EventManager, Event_A, Event_B,Goblin_Army, Undead_Army, Peacefull_Day
+from event_manager import Event, EventManager, Event_A, Event_B,Goblin_Army, Undead_Army, Peacefull_Day, Peacefull_Night
+from event_manager import TimePhase
 import random
 import copy
 import pyxel
+from enum import Enum
+
+# Good event = Day
+# Bad event = Night
+# Current Phase
 
 possible_events_list = [
     # Event_A(), 
-     Undead_Army(), 
-     Goblin_Army(),
-     Peacefull_Day(),
+    # Undead_Army(), 
+    # Goblin_Army(),
+    Peacefull_Day(),
+    Peacefull_Night(),
     # Goblin_Army()
 ]
-
 class WaveManager:
 
     def __init__(self, event_manager):
@@ -18,16 +24,30 @@ class WaveManager:
         self.generate_upfront_size = 5
         self.current_event = None
         self.event_manager = event_manager
+        self.image_art_loaded = False
+        self.current_phase = TimePhase.DAY
+        self.game_manager = None
+        self.first_simulate = True
+
+    def on_start(self):
+        # Post init?
+        # First event has to blank for some reason?
         self.event_list.append(copy.deepcopy(Peacefull_Day()))
+
+        # Load events
         self.event_list.append(copy.deepcopy(Peacefull_Day()))
+        self.event_list.append(copy.deepcopy(Peacefull_Night()))
         self.event_list.append(copy.deepcopy(Peacefull_Day()))
-        self.event_list.append(copy.deepcopy(Peacefull_Day()))
+        self.event_list.append(copy.deepcopy(Peacefull_Night()))
         self.event_list.append(copy.deepcopy(Peacefull_Day()))
         self.current_event = self.event_list[0]
         self.next_event_start()
-        self.image_art_loaded = False
-    
+
     def simulate(self):
+        if self.first_simulate:
+            self.first_simulate = False
+            self.on_start()
+
         self.current_event : Event = self.current_event
         #print(self.event_list)
         #print(self.current_event.action_cooldown)
@@ -42,6 +62,16 @@ class WaveManager:
         self.event_manager.add_event(self.current_event)
         # load next image art
         pyxel.images[1].load(0,0,self.current_event.event_art_path)
+        
+        if self.current_event.time_phase != TimePhase.NONE:
+            if self.current_event.time_phase == self.current_phase:
+                return
+            else:
+                # PHASE CHANGED!
+                print(f"PHASE CHANGED: {self.current_phase}->{self.current_event.time_phase}")
+                self.current_phase = self.current_event.time_phase
+                self.game_manager.popup = self.current_event
+
     
     def add_next_events(self, how_many_to_add):
         for i in range(how_many_to_add):
